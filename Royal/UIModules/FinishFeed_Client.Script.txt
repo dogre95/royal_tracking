@@ -229,7 +229,7 @@ K_State DisplayNotifications(K_State _State) {
 
 K_State PushNotificationToDisplay(K_State _State, Integer _NodificationId, K_Notification _Notification) {
 	declare K_State State = _State;
-	
+
 	State.DisplayedNotifications.add(K_NotificationDisplay {
 		Notification = _Notification,
 		DisplayEndTime = Now + C_NotificationDisplayDuration,

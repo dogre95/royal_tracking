@@ -206,7 +206,7 @@ K_State SetVisibility(K_State _State, Boolean _DisplayModule, Integer _WinningTe
 					case {{{SuperRoyal::P}}}C_Division_Gold: Video_Url = "{{{Video_GoldSuperRoyalChampion}}}";
 					case {{{SuperRoyal::P}}}C_Division_Master: Video_Url = "{{{Video_MasterSuperRoyalChampion}}}";
 				}
-			} 
+			}
 			declare CVideo WinnerVideo <=> Video.CreateVideo(Video_Url, False, True);
 			if (WinnerVideo != Null) {
 				State.WinnerVideoId = WinnerVideo.Id;
@@ -261,7 +261,7 @@ K_State Update(K_State _State, Boolean _DisplayModule, Integer _RankingUpdate, I
 	declare Boolean IsWinner = (PlayerClan > 0 && PlayerClan == WinningTeamRank.TeamId);
 
 	State = SetVisibility(State, _DisplayModule, WinningTeamRank.TeamId, IsWinner, _IsSuperRoyal, _IsFinale, _SuperRoyalDivision);
-	
+
 	if (State.IsDisplayed) {
 		if (WinningTeamRank.TeamId > 0 && !IsWinner) {
 			declare Text TeamLogo = Clans::GetClanLogo(WinningTeamRank.TeamId);

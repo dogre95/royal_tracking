@@ -216,7 +216,7 @@ Void DisplayEliminations(K_ScheduledAnimation _ScheduledAnimation, {{{PlayerName
 	Label_EliminatedTeamsNb.Value = "";
 	if (_ScheduledAnimation.EliminatedTeamsNb == 1) Label_EliminatedTeamsNb.Value = "{{{Text_OneTeamEliminated}}}";
 	else if (_ScheduledAnimation.EliminatedTeamsNb > 1) Label_EliminatedTeamsNb.Value = TL::Compose("{{{Text_SeveralTeamsEliminated}}}", ""^_ScheduledAnimation.EliminatedTeamsNb);
-	
+
 	for (FrameIndex, 0, C_SlotsNb - 1) {
 		declare CMlFrame Frame_Slot <=> (_ScheduledAnimation.Frame_Slots.GetFirstChild("frame-slot-"^FrameIndex) as CMlFrame);
 		if (Frame_Slot != Null) {
@@ -228,13 +228,13 @@ Void DisplayEliminations(K_ScheduledAnimation _ScheduledAnimation, {{{PlayerName
 			declare CMlLabel Label_Rank <=> (Frame_Slot.GetFirstChild("label-rank") as CMlLabel);
 			declare CMlLabel Label_Qualified <=> (Frame_Slot.GetFirstChild("label-qualified") as CMlLabel);
 			declare CMlLabel Label_Division <=> (Frame_Slot.GetFirstChild("label-division") as CMlLabel);
-			
+
 			declare SlotAnimStartTime = StartTime + ((AnimTime + WaitTime) * FrameIndex);
 			declare Integer TeamId = -1;
 			if (_ScheduledAnimation.TeamIds.existskey(FrameIndex)) TeamId = _ScheduledAnimation.TeamIds[FrameIndex];
 			declare Integer TeamRank = -1;
 			if (_ScheduledAnimation.TeamRanks.existskey(FrameIndex)) TeamRank = _ScheduledAnimation.TeamRanks[FrameIndex];
-			
+
 			declare Vec3 RankColor = <1.,1.,1.>;
 			declare Real BgOpacity = 0.5;
 			declare Text Rank = "";
@@ -246,7 +246,7 @@ Void DisplayEliminations(K_ScheduledAnimation _ScheduledAnimation, {{{PlayerName
 				}
 				Rank = TL::FormatRank(TeamRank, False);
 				Logo = Clans::GetClanLogo(TeamId);
-				
+
 				AnimMgr.Flush(Frame_Slot);
 				// Frame_Shake is one common frame shared by all slots
 				// We must flush the animations on it only once when
@@ -260,14 +260,14 @@ Void DisplayEliminations(K_ScheduledAnimation _ScheduledAnimation, {{{PlayerName
 				declare Integer ShakeDelay = -75;
 				declare Real RandRange = 1 - ((2 * ML::Rand(0, 1)) * ML::Rand(0., 0.1));
 				G_ScheduledSounds[SlotAnimStartTime] = "{{{UIModules_RoundEliminations_Common::C_Sound_KnockOutTeam}}}";
-				
+
 				AnimMgr.Add(Frame_Slot, "<anim scale=\"1.\" hidden=\"0\" rot=\"0\"/>", SlotAnimStartTime, AnimTime, CAnimManager::EAnimManagerEasing::QuadIn);
 				AnimMgr.Add(Frame_Shake, "<anim rot=\""^ML::Rand(-0.75 * RandRange, -0.5 * RandRange)^"\"/>", SlotAnimStartTime + AnimTime, ShakeFrequency + ShakeDelay, CAnimManager::EAnimManagerEasing::SineInOut);
 				AnimMgr.Add(Frame_Shake, "<anim rot=\""^ML::Rand(0.5 * RandRange, 0.75 * RandRange)^"\"/>", SlotAnimStartTime + AnimTime + (2 * ShakeFrequency) + ShakeDelay, ShakeFrequency, CAnimManager::EAnimManagerEasing::SineInOut);
 				AnimMgr.Add(Frame_Shake, "<anim rot=\""^ML::Rand(-0.25 * RandRange, -0.1 * RandRange)^"\"/>", SlotAnimStartTime + AnimTime + (3 * ShakeFrequency) + ShakeDelay, ShakeFrequency, CAnimManager::EAnimManagerEasing::SineInOut);
 				AnimMgr.Add(Frame_Shake, "<anim rot=\"0\"/>", SlotAnimStartTime + AnimTime + (5 * ShakeFrequency) + ShakeDelay, ShakeFrequency, CAnimManager::EAnimManagerEasing::SineInOut);
 			}
-			
+
 			if (_IsSuperRoyal && !_IsSuperRoyalFinale) {
 				// During Super Royal qualifications, the Top 12 will qualify in a specific division
 				if (_SuperRoyalMatchNumber == 1) {
@@ -288,7 +288,7 @@ Void DisplayEliminations(K_ScheduledAnimation _ScheduledAnimation, {{{PlayerName
 					Quad_Stamp.Visible = TeamId > 0 && TeamRank <= 3;
 					Label_Division.Value = "";
 					Label_Qualified.RelativePosition_V3.Y = 0.;
-				} 
+				}
 				if (Quad_Stamp.Visible) {
 					Quad_Stamp.Colorize = Clans::GetClanColor(TeamId);
 					Label_Qualified.TextColor = Clans::GetClanColor(TeamId);
@@ -356,7 +356,7 @@ Void DisplayButtons(Boolean _DisplayButtons) {
 
 Boolean SetButtonsAreVisible(CMlFrame _Frame_VAlign, CMlQuad _Quad_Background, CMlQuad _Quad_BackgroundButtons, Boolean _ButtonsAreVisible) {
 	EnableMenuNavigation(_ButtonsAreVisible, False, False, Null, C_InputPriority);
-	
+
 	AnimMgr.Flush(_Frame_VAlign);
 	AnimMgr.Flush(_Quad_Background);
 	AnimMgr.Flush(_Quad_BackgroundButtons);
@@ -452,14 +452,14 @@ if (PageIsVisible) {
 
 	if (EliminatedTeamsUpdate != Net_Royal_RoundEliminations_EliminatedTeamsUpdate) {
 		EliminatedTeamsUpdate = Net_Royal_RoundEliminations_EliminatedTeamsUpdate;
-		
+
 		declare Integer[] AllTeamIds;
 		declare Integer[] AllTeamRanks;
 		foreach (TeamId => TeamRank in Net_Royal_RoundEliminations_EliminatedTeams) {
 			AllTeamIds.add(TeamId);
 			AllTeamRanks.add(TeamRank);
 		}
-		
+
 		// Reset animations
 		foreach (Frame_Slots in Frames_Slots) {
 			CancelEliminations(Frame_Slots);
@@ -468,7 +468,7 @@ if (PageIsVisible) {
 		ScheduledAnimations = [];
 		G_ScheduledSounds = [];
 		AnimMgr.Flush(Page.GetFirstChild("frame-shake"));
-		
+
 		// Find players' names
 		PlayerUserInfos = [];
 		foreach (Score in Scores) {

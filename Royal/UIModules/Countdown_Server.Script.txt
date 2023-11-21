@@ -46,7 +46,7 @@ Void SetBonusTimeEndTimes(Integer[Integer] _BonusTimeEndTimes) {
  */
 Void SetVisibility(CPlayer _Player, Boolean _Display) {
 	if (_Player == Null) return;
-	
+
 	declare netwrite Boolean Net_Royal_Countdown_IsVisible for _Player;
 	Net_Royal_Countdown_IsVisible = _Display;
 }
@@ -58,7 +58,7 @@ Void SetVisibility(CPlayer _Player, Boolean _Display) {
  */
 Void InitializePlayer(CPlayer _Player) {
 	if (_Player == Null) return;
-	
+
 	SetVisibility(_Player, False);
 }
 
@@ -66,7 +66,7 @@ Void InitializePlayer(CPlayer _Player) {
 /// Unload the library
 Void Unload() {
 	SetBonusTimeEndTimes([]);
-	
+
 	foreach (Player in AllPlayers) {
 		InitializePlayer(Player);
 	}

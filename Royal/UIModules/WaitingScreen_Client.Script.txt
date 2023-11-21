@@ -43,7 +43,7 @@
 #Const C_Column_Number 0
 #Const C_Column_Legend 1
 
-//L16N [Track Browser] %1 MUST STAY AT THE END OF THE STRING !!! %1 will be replaced by the name of the author of the track, e.g. "by PlayerA". If your language does not permit to keep the %1 at the end of the string, do not translate "By" and just keep the text "%1" 
+//L16N [Track Browser] %1 MUST STAY AT THE END OF THE STRING !!! %1 will be replaced by the name of the author of the track, e.g. "by PlayerA". If your language does not permit to keep the %1 at the end of the string, do not translate "By" and just keep the text "%1"
 #Const C_Text_AuthorName _("|NameOnTheRight|By %1")
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -147,7 +147,7 @@ Text GetML() {
 	<frame id="frame-voicechat" pos="{{{Pos_PlayerVoiceChatSpeaker.X}}} {{{Pos_PlayerVoiceChatSpeaker.Y}}}" hidden="1">
 		<frameinstance id="frame-speaker-background" modelid="{{{ExpendableAsset::C_Name}}}" data-width="{{{Size_PlayerSpeaker.X}}}" data-height="{{{Size_PlayerSpeaker.Y}}}" data-color="{{{Stylesheet::GetColorHex6(Stylesheet::C_Color_BGDark)}}}" data-styles="{{{ExpendableAsset::C_Style_RightEdgeRounded}}}" data-opacity="0.6" data-halign="center" data-valign="center2" z-index="-1"/>
 		<quad id="quad-speaker" size="5 5" image="{{{Icons::C_Icon_128x128_Speaker_Off}}}" opacity="0.6" colorize="FFF" halign="center" valign="center2" />
-		<frameinstance 
+		<frameinstance
 			z-index="2"
 			id="loading-spinner-speaker"
 			modelid="{{{LoadingSpinner::C_Name}}}"
@@ -158,7 +158,7 @@ Text GetML() {
 	</frame>
 </framemodel>
 
-<frame id="frame-global" 
+<frame id="frame-global"
 	z-index="{{{ZIndex::C_ZIndex_WaitingScreen}}}"
 	data-nav-inputs="cancel;appmenu;action1"
 	data-nav-targets="_;_;_"
@@ -384,7 +384,7 @@ Void Focus(CMlControl _From, CMlControl _To, CMlFrame _Frame_ButtonList) {
 			FocusPlayer(_From as CMlFrame, False);
 		}
 	}
-	
+
 	if (_To != Null) {
 		{{{Navigation::P}}}Focus(This, _To);
 		if (_To.HasClass(C_Class_Player)) {
@@ -448,7 +448,7 @@ K_State UpdateMap(K_State _State, CMap _Map) {
 		State.Controls.PlayerName_MapAuthor.Visible = False;
 	} else {
 		State.MapId = _Map.Id;
-		
+
 		if (_Map.MapInfo.MapUid != "") {
 			State.Controls.Quad_MapThumbnail.ImageUrl = "file://Thumbnails/MapUid/"^_Map.MapInfo.MapUid;
 			State.Controls.Quad_MapThumbnail.Visible = True;
@@ -501,7 +501,7 @@ K_State UpdateEliminationsNb(K_State _State, Int2 _EliminationsNb) {
 			State.Controls.Label_EliminatedTeamsNumber.Visible = True;
 			State.Controls.Label_EliminatedTeamsLegend.Visible = True;
 		}
-		
+
 		State.Controls.Frame_Eliminations.Visible = True;
 	} else {
 		State.Controls.Frame_Eliminations.Visible = False;
@@ -521,7 +521,7 @@ K_State SetMatchStarting(K_State _State, Boolean _IsStarting) {
 		AnimMgr.Flush(State.Controls.Frame_WaitingPlayers);
 		AnimMgr.Flush(State.Controls.Label_MatchStarting);
 		State.Controls.Label_MatchStarting.TextColor = <1., 1., 1.>;
-		
+
 		if (State.MatchStarting) {
 			AnimMgr.Add(State.Controls.Frame_WaitingPlayers, "<a pos=\"100 0\" hidden=\"1\" />", C_MatchStartAnimDuration, CAnimManager::EAnimManagerEasing::QuadOut);
 			AnimMgr.Add(State.Controls.Label_MatchStarting, "<a pos=\"0 0\" hidden=\"0\" />", Now + C_MatchStartAnimDuration, C_MatchStartAnimDuration, CAnimManager::EAnimManagerEasing::QuadOut);
@@ -565,7 +565,7 @@ Void UpdateTeamMembers(K_State _State) {
 					}
 					{{{PlayerName::P}}}SetUser(This, PlayerName_Name, Member.User, True, False);
 					{{{PlayerName::P}}}Redraw(This, PlayerName_Name);
-	
+
 					// Voice chat
 					declare Boolean UserConnectedToVoiceChat = 	Member.User != Null && Member.User.VoiceChat != Null &&	Member.User.VoiceChat.IsConnected;
 					Quad_Speaker.Visible = IsInVoiceChatChannel() && IsNotAloneInVoiceChatChannel() && UserConnectedToVoiceChat;
@@ -586,15 +586,15 @@ Void UpdateTeamMembers(K_State _State) {
 							}
 						}
 						if (Quad_Speaker.ImageUrl != ImageUrl) Quad_Speaker.ImageUrl = ImageUrl;
-	
+
 						// Start or stop mute loading spinner if necessary
 						LoadingSpinner_Mute.Visible = Member.User.VoiceChat.MuteChangePending;
 						if (LoadingSpinner_Mute.Visible && !{{{LoadingSpinner::P}}}IsLoading(LoadingSpinner_Mute)) {{{LoadingSpinner::P}}}StartAnimation(This, LoadingSpinner_Mute);
 						else if (!LoadingSpinner_Mute.Visible && {{{LoadingSpinner::P}}}IsLoading(LoadingSpinner_Mute)) {{{LoadingSpinner::P}}}StopAnimation(This, LoadingSpinner_Mute);
 					}
-					
+
 					Frame_Member.Visible = True;
-					{{{Navigation::P}}}Lock(Frame_Member, False);					
+					{{{Navigation::P}}}Lock(Frame_Member, False);
 				}
 			} else {
 				Frame_Member.Visible = False;
@@ -607,7 +607,7 @@ Void UpdateTeamMembers(K_State _State) {
 
 K_State UpdateTeams(K_State _State) {
 	declare K_State State = _State;
-	
+
 	declare Ident InputPlayerId = NullId;
 	declare Integer InputPlayerClan = -1;
 	if (InputPlayer != Null) {
@@ -629,7 +629,7 @@ K_State UpdateTeams(K_State _State) {
 	if (State.InputPlayerId != InputPlayerId || State.InputPlayerClan != InputPlayerClan) {
 		State.InputPlayerId = InputPlayerId;
 		State.InputPlayerClan = InputPlayerClan;
-	
+
 		State.Controls.Label_TeamName.Value = Clans::GetClanName(State.InputPlayerClan);
 		State.Controls.Quad_TeamLogo.ImageUrl = Clans::GetClanLogo(State.InputPlayerClan);
 		State.Controls.Quad_TeamLogo.Visible = (State.Controls.Quad_TeamLogo.ImageUrl != "");
@@ -698,7 +698,7 @@ Void UpdateModename(K_State _State, Boolean _IsSuperRoyalEnabled, Integer _Quali
 		_State.Controls.Label_SuperRoyal_Division.Value = "";
 		_State.Controls.Frame_MapsProgressionBgClip.RelativePosition_V3 = 0.5*(_State.Controls.Label_ModeName.RelativePosition_V3 + _State.Controls.Label_MapsProgression.RelativePosition_V3) + <0., 1.>;
 		_State.Controls.Frame_MapsProgressionBgClip.Size = <
-			ML::Max(_State.Controls.Label_ModeName.ComputeWidth(_State.Controls.Label_ModeName.Value), _State.Controls.Label_MapsProgression.ComputeWidth(_State.Controls.Label_MapsProgression.Value)) + 4., 
+			ML::Max(_State.Controls.Label_ModeName.ComputeWidth(_State.Controls.Label_ModeName.Value), _State.Controls.Label_MapsProgression.ComputeWidth(_State.Controls.Label_MapsProgression.Value)) + 4.,
 			_State.Controls.Label_ModeName.ComputeHeight(_State.Controls.Label_ModeName.Value) + _State.Controls.Label_MapsProgression.ComputeHeight(_State.Controls.Label_MapsProgression.Value) + 4.
 		>;
 		_State.Controls.Quad_MapsProgressionBg.Size = 2*_State.Controls.Frame_MapsProgressionBgClip.Size;
@@ -763,7 +763,7 @@ Void RedrawPlayers(Boolean _VoiceChatEnabled, CMlFrame[] _Frames_Members, CMlFra
 
 Void Select(CMlControl _Control) {
 	if (_Control == Null) return;
-	
+
 	if (_Control.HasClass(C_Class_Player)) {
 		declare Text CurrentPlayerAccountId for _Control = "";
 		if (CurrentPlayerAccountId == LocalUser.WebServicesUserId) {
@@ -912,7 +912,7 @@ if (PageIsVisible) {
 
 		if (NextPlayersCheckTime >= 0 && Now >= NextPlayersCheckTime) {
 			NextPlayersCheckTime = Now + C_PlayersCheckInterval;
-			
+
 			declare Boolean TeamsUpdated = False;
 			foreach (Player in Players) {
 				declare Integer Royal_WaitingScreen_CurrentClan for Player = -1;
@@ -944,7 +944,7 @@ if (PageIsVisible) {
 		UpdateMuteAllDisplay(Frame_ButtonList);
 		RedrawPlayers(IsInVoiceChatChannel && IsInVoiceChatChannelNotAlone, State.Controls.Frames_Members, Frame_ButtonList);
 	}
-	
+
 	/* Voice chat events */
 	if (IsInVoiceChatChannel) {
 		foreach (Event in UserMgr.VoiceChat_Events) {
@@ -998,7 +998,7 @@ if (PageIsVisible) {
 	UIModules::Component(),
 	MainBackground::Component(),
 	LoadingSpinner::ComponentV2(),
-	SuperRoyal::Component(),	
+	SuperRoyal::Component(),
 	Navigation::ComponentV2(),
 	MenuButtonList::Component(),
 	ExpendableAsset::ComponentV2(),

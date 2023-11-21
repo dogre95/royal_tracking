@@ -1,0 +1,30 @@
+/**
+ *	TeamScore helper functions
+ */
+#Const Version		"1.0.0"
+#Const ScriptName	"Libs/Nadeo/Trackmania/Modes/Royal/TeamScore.Script.txt"
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+// Constants
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+#Const C_Default_Height 0.
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+// Functions
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+/// Set the team score height
+Void SetHeight(CMlScript _Context, Real _Height) {
+	if (_Context == Null) return;
+	declare Real Royal_TeamScore_Height for _Context = C_Default_Height;
+
+	Royal_TeamScore_Height = _Height;
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+/// Get the team score height
+Real GetHeight(CMlScript _Context) {
+	if (_Context == Null) return C_Default_Height;
+	declare Real Royal_TeamScore_Height for _Context = C_Default_Height;
+	return Royal_TeamScore_Height;
+}

@@ -1,4 +1,4 @@
-/** 
+/**
  *	State manager for the Royal mode
  */
 #Const Version		"1.0.0"
@@ -78,7 +78,7 @@ declare Integer[] G_ForcedStates;
  */
 Void Private_Apply(CPlayer _Player, Integer[] _States) {
 	if (_Player == Null) return;
-	
+
 	UIModules_RoundEliminations::SetVisibility(_Player, False);
 	UIModules_WaitingScreen::SetVisibility(_Player, False);
 	UIModules_ScoresTable::SetVisibility(_Player, True);
@@ -97,7 +97,7 @@ Void Private_Apply(CPlayer _Player, Integer[] _States) {
 	UIModules_FinishFeed::SetVisibility(_Player, False);
 	UIModules_EliminationWarning::SetVisibility(_Player, False);
 	UIModules_BonusTime::SetVisibility(_Player, False);
-	
+
 	foreach (State in _States) {
 		switch (State) {
 			case C_State_Playing: {
@@ -224,7 +224,7 @@ Boolean HasForcedState(Integer _State) {
  */
 Void ForcePlayersStates(Integer[] _States) {
 	G_ForcedStates = _States;
-	
+
 	foreach (Player in AllPlayers) {
 		declare Boolean LibStateMgr_IsForcedStates for Player = False;
 		// Enable
@@ -262,7 +262,7 @@ Void Yield() {
  */
 Void InitializePlayer(CPlayer _Player) {
 	if (_Player == Null) return;
-	
+
 	UIModules_RoundEliminations::InitializePlayer(_Player);
 	UIModules_WaitingScreen::InitializePlayer(_Player);
 	UIModules_ScoresTable::InitializePlayer(_Player);
@@ -282,9 +282,9 @@ Void InitializePlayer(CPlayer _Player) {
 	UIModules_FinishFeed::InitializePlayer(_Player);
 	UIModules_BonusTime::InitializePlayer(_Player);
 	UIModules_CanChat::InitializePlayer(_Player);
-	
+
 	Reset(_Player);
-	
+
 	if (G_ForcedStates.count > 0) {
 		declare Boolean LibStateMgr_IsForcedStates for _Player = False;
 		LibStateMgr_IsForcedStates = True;
@@ -296,11 +296,11 @@ Void InitializePlayer(CPlayer _Player) {
 /// Unload the library
 Void Unload() {
 	ForcePlayersStates([]);
-	
+
 	foreach (Player in AllPlayers) {
 		InitializePlayer(Player);
 	}
-	
+
 	UIModules_CanChat::Unload();
 	UIModules_BonusTime::Unload();
 	UIModules_FinishFeed::Unload();
@@ -327,7 +327,7 @@ Void Unload() {
 /// Load the library
 Void Load() {
 	Unload();
-	
+
 	UIModules_RoundEliminations::Load();
 	UIModules_WaitingScreen::Load();
 	UIModules_ScoresTable::Load();
@@ -348,7 +348,7 @@ Void Load() {
 	UIModules_NetShare_Royal::Load();
 	UIModules_BonusTime::Load();
 	UIModules_CanChat::Load();
-	
+
 	UIModules::InitializeCustomizableModule(UIModules_RoundEliminations::GetConfig());
 	UIModules::InitializeCustomizableModule(UIModules_WaitingScreen::GetConfig());
 	UIModules::InitializeCustomizableModule(UIModules_ScoresTable::GetConfig());
@@ -390,7 +390,7 @@ Void Load() {
 		UIModules_BonusTime::GetId(),
 		UIModules_CanChat::GetId()
 	]);
-	
+
 	// Unload some default modules
 	UIModules::UnloadModules([
 		UIModules_RespawnHelper_Default::GetId(),

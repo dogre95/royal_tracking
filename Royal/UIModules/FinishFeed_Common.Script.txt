@@ -1,7 +1,7 @@
 /**
  *	UI module: FinishFeed common
  */
-#Const Version		"1.0.0"
+#Const Version		"1.0.1"
 #Const ScriptName	"Libs/Nadeo/Trackmania/Modes/Royal/UIModules/FinishFeed_Common.Script.txt"
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -26,7 +26,7 @@
 	Id = "Royal_FinishFeed", //< Do not modify this Id once in production. It is used by the xmlrpc protocole and would break compatibility.
 	IsCustomizable = True,
 	Properties = UIModules_Common::K_ModuleProperties {
-		Position = <160., 44.6>,
+		Position = <160., 44.3>,
 		Scale = 1.,
 		Visible = True
 	}

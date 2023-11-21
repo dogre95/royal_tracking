@@ -69,7 +69,7 @@ Void SendGroupedCannotChatMessages() {
 			}
 		}
 	}
-	
+
 	foreach (Player in AllPlayers) {
 		if (Player.CurrentClan > 0 && Player.User != Null && !Player.User.IsFakeUser && ClansCannotChatUsers.existskey(Player.CurrentClan)) {
 			declare CUIConfig UI <=> UIManager.GetUI(Player);
@@ -97,7 +97,7 @@ Void SendGroupedCannotChatMessages() {
  */
 Void SendCannotChatMessage(CSmPlayer _CannotChatPlayer) {
 	if (_CannotChatPlayer == Null || _CannotChatPlayer.CurrentClan <= 0) return;
-	
+
 	foreach (Player in AllPlayers) {
 		if (Player.CurrentClan == _CannotChatPlayer.CurrentClan && Player.Id != _CannotChatPlayer.Id) {
 			declare CUIConfig UI <=> UIManager.GetUI(Player);
@@ -150,11 +150,11 @@ Void Yield() {
 /// Unload the library
 Void Unload() {
 	G_NextUpdateTime = -1;
-	
+
 	foreach (Player in AllPlayers) {
 		InitializePlayer(Player);
 	}
-	
+
 	foreach (User in Users) {
 		// The CSmPlayer objects can be destroyed and recreated between maps
 		// This will trigger the `OnPlayerAdded` event and `InitializePlayer()` function
@@ -171,6 +171,6 @@ Void Unload() {
 /// Load the library
 Void Load() {
 	Unload();
-	
+
 	G_NextUpdateTime = Now;
 }

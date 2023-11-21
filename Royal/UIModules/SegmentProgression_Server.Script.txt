@@ -1,7 +1,7 @@
 /**
  *	UI module: SegmentProgression server side
  */
-#Const Version		"1.1.0"
+#Const Version		"1.0.0"
 #Const ScriptName	"Libs/Nadeo/Trackmania/Modes/Royal/UIModules/SegmentProgression_Server.Script.txt"
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -9,11 +9,6 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #Include "Libs/Nadeo/CMGame/Modes/UIModules_Common.Script.txt" as UIModules_Common
 #Include "Libs/Nadeo/Trackmania/Modes/Royal/UIModules/SegmentProgression_Common.Script.txt" as UIModules_SegmentProgression_Common
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Constants
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#Const UIModules_SegmentProgression_Common::C_Default_DisplayJoinTeam as C_Default_DisplayJoinTeam
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 // Functions
@@ -93,19 +88,12 @@ Void AlwaysDisplayUnlockTimer(Boolean _AlwaysDisplayUnlockTimer) {
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Select if the UI can display the "join team" message or not
-Void SetDisplayJoinTeam(Boolean _DisplayJoinTeam) {
-	declare netwrite Boolean Net_Royal_SegmentProgression_DisplayJoinTeam for Teams[0] = C_Default_DisplayJoinTeam;
-	Net_Royal_SegmentProgression_DisplayJoinTeam = _DisplayJoinTeam;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /// Can the player joins their team by restarting ?
 Void SetCanJoinTeam(CPlayer _Player, Boolean _CanJoinTeam) {
 	if (_Player == Null) return;
 	declare CUIConfig UI <=> UIManager.GetUI(_Player);
 	if (UI == Null) return;
-	
+
 	declare netwrite Boolean Net_Royal_SegmentProgression_CanJoinTeam for UI;
 	Net_Royal_SegmentProgression_CanJoinTeam = _CanJoinTeam;
 }
@@ -119,7 +107,7 @@ Void SetCanJoinTeam(CPlayer _Player, Boolean _CanJoinTeam) {
  */
 Void SetVisibility(CPlayer _Player, Boolean _Display) {
 	if (_Player == Null) return;
-	
+
 	declare netwrite Boolean Net_Royal_SegmentProgression_IsVisible for _Player;
 	Net_Royal_SegmentProgression_IsVisible = _Display;
 }
@@ -131,7 +119,7 @@ Void SetVisibility(CPlayer _Player, Boolean _Display) {
  */
 Void InitializePlayer(CPlayer _Player) {
 	if (_Player == Null) return;
-	
+
 	SetVisibility(_Player, False);
 	SetPlayerProgression(_Player, 0);
 	SetCanJoinTeam(_Player, False);
@@ -145,8 +133,7 @@ Void Unload() {
 	SetUnlockedSegment(0);
 	SetNextSegmentUnlockTime(-1);
 	AlwaysDisplayUnlockTimer(False);
-	SetDisplayJoinTeam(C_Default_DisplayJoinTeam);
-	
+
 	foreach (Player in AllPlayers) {
 		InitializePlayer(Player);
 	}

@@ -1,7 +1,7 @@
 /**
  *	ZIndex for all the Royal UI
  */
-#Const Version		"1.0.0"
+#Const Version		"1.3.0"
 #Const ScriptName	"Libs/Nadeo/Trackmania/Modes/Royal/UIModules/ZIndex.Script.txt"
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -13,11 +13,14 @@
 #Const C_ZIndex_MatchResult -5
 #Const C_ZIndex_WinScreen -6
 #Const C_ZIndex_RoundEliminations -7
-#Const C_ZIndex_SegmentComplete -8
-#Const C_ZIndex_BonusTime -9
-#Const C_ZIndex_Countdown -10
-#Const C_ZIndex_LiveRanking -11
-#Const C_ZIndex_SegmentProgression -12
-#Const C_ZIndex_SpectatorInfo -13
-#Const C_ZIndex_TeamScore -14
-#Const C_ZIndex_RespawnHelper -15
+#Const C_ZIndex_RaceComplete -8
+#Const C_ZIndex_SegmentComplete -9
+#Const C_ZIndex_BonusTime -10
+#Const C_ZIndex_Chrono -11
+#Const C_ZIndex_Countdown -12
+#Const C_ZIndex_LiveRanking -13
+#Const C_ZIndex_SegmentProgression -14
+#Const C_ZIndex_SpectatorInfo -15
+#Const C_ZIndex_TeamScore -16
+#Const C_ZIndex_SegmentRecord -17
+#Const C_ZIndex_RespawnHelper -18

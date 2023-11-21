@@ -1,7 +1,7 @@
 /**
  *	Royal ranking client side
  */
-#Const Version		"1.0.0"
+#Const Version		"1.2.0"
 #Const ScriptName	"Libs/Nadeo/Trackmania/Modes/Royal/Ranking_Client.Script.txt"
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -32,6 +32,7 @@ Text Component() {
 	Integer Time;
 	Integer TimeDiff;
 	Boolean Eliminated;
+	Integer Stars;
 }
 
 #Const {{{P}}}C_TeamRankNull {{{P}}}K_TeamRank {
@@ -40,7 +41,8 @@ Text Component() {
 	Points = 0,
 	Time = -1,
 	TimeDiff = 0,
-	Eliminated = False
+	Eliminated = False,
+	Stars = 0
 }
 """,
 """
@@ -62,6 +64,7 @@ Integer[][] {{{P}}}GetTeamsRanking() {
 	if (_TeamRank.count >= 3) TeamRank.Time = _TeamRank[2];
 	if (_TeamRank.count >= 4) TeamRank.TimeDiff = _TeamRank[3];
 	if (_TeamRank.count >= 5) TeamRank.Eliminated = _TeamRank[4] > 0;
+	if (_TeamRank.count >= 6) TeamRank.Stars = _TeamRank[5];
 	TeamRank.Rank = _Rank;
 
 	return TeamRank;
@@ -91,6 +94,12 @@ Integer {{{P}}}GetPlayerSegmentsNb(CSmScore _Score) {
 	if (_Score == Null) return 0;
 	declare netread Integer Net_Royal_Ranking_SegmentsNb for _Score;
 	return Net_Royal_Ranking_SegmentsNb;
+}
+
+Integer {{{P}}}GetPlayerSegmentsPoints(CSmScore _Score) {
+	if (_Score == Null) return 0;
+	declare netread Integer Net_Royal_Ranking_SegmentsPoints for _Score;
+	return Net_Royal_Ranking_SegmentsPoints;
 }
 """,
 [],

@@ -1,7 +1,7 @@
 /**
  *	UI module: BonusTime client side
  */
-#Const Version		"1.0.0"
+#Const Version		"1.1.0"
 #Const ScriptName	"Libs/Nadeo/Trackmania/Modes/Royal/UIModules/BonusTime_Client.Script.txt"
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -60,6 +60,7 @@ GetId(), 3,
 """,
 """
 #Include "MathLib" as ML
+#Include "Libs/Nadeo/CMGame/Utils/MLHelpers.Script.txt" as MLHelpers
 #Include "Libs/Nadeo/TMGame/Modes/MV_Utils.Script.txt" as MV_Utils
 
 #Struct K_Controls {
@@ -83,7 +84,7 @@ K_State SetVisibility(K_State _State, Boolean _IsVisible) {
 
 	State.DisplayModule = _IsVisible;
 	State.DisplayAnimEndTime = Now + C_DisplayAnimDuration;
-	
+
 	AnimMgr.Flush(State.Controls.Frame_BonusTime);
 	AnimMgr.Flush(State.Controls.Quad_Background);
 	AnimMgr.Flush(State.Controls.Label_BonusTime);
@@ -111,7 +112,10 @@ K_State SetVisibility(K_State _State, Boolean _IsVisible) {
 ***
 declare CMlFrame Frame_Clip;
 
+declare Integer TMGame_RoyalStars_SegmentComplete_EndAnimTimestamp for ClientUI;
+
 declare K_State State;
+declare Boolean IsSegmentCompleteMessageVisible;
 ***
 
 ***MainStart***
@@ -151,6 +155,17 @@ if (PageIsVisible) {
 	if (State.DisplayAnimEndTime >= 0 && Now >= State.DisplayAnimEndTime) {
 		State.Controls.Frame_Global.Visible = State.DisplayModule;
 		State.DisplayAnimEndTime = -1;
+	}
+
+	// Move bonus time if the segment complete message is visible
+	if (State.DisplayModule) {
+		if (!IsSegmentCompleteMessageVisible && Now <= TMGame_RoyalStars_SegmentComplete_EndAnimTimestamp) {
+			AnimMgr.Add(State.Controls.Frame_Global, "<anim pos=\""^MLHelpers::SkewX(-13., 10.)^" -13\" />", 500, CAnimManager::EAnimManagerEasing::BackOut);
+			IsSegmentCompleteMessageVisible = True;
+		} else if (IsSegmentCompleteMessageVisible && Now > TMGame_RoyalStars_SegmentComplete_EndAnimTimestamp) {
+			AnimMgr.Add(State.Controls.Frame_Global, "<anim pos=\"0 0\" />", 500, CAnimManager::EAnimManagerEasing::BackOut);
+			IsSegmentCompleteMessageVisible = False;
+		}
 	}
 }
 ***

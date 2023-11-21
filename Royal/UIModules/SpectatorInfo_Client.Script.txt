@@ -222,7 +222,7 @@ K_State SetVisibility(K_State _State, Boolean _HasValidTarget, Boolean _DisplayM
 
 K_State Update(K_State _State, CSmPlayer _TargetPlayer, Boolean _DisplayModule, Boolean _IsSuperRoyal, Boolean _IsSuperRoyalFinale, Integer _SuperRoyalMatchNumber, Text _SuperRoyalDivision) {
 	declare K_State State = _State;
-	
+
 	if (_TargetPlayer == Null) {
 		State.TargetPlayerId = NullId;
 		State.TargetPlayerClan = -1;

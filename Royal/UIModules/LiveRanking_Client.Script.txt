@@ -63,7 +63,7 @@ Text GetML() {
 	declare Vec2 Size_LiveRankingBg = <Size_Team.X, (TeamsNb * Size_Team.Y) + Size_TeamSeparator.Y>;
 	declare Vec2 Size_Clip = <Size_Team.X, Size_DisplayButton.Y + 1.5 + Size_LiveRankingBg.Y>;
 	declare Vec2 Pos_LiveRanking = <0., -Size_DisplayButton.Y - 1.5>;
-	
+
 	declare Real Gutter = 1.;
 	declare GridConfig_LiveRanking = Grid::Create(Size_Team.X, Gutter * 0.5, Gutter, Grid::C_Direction_Right);
 	GridConfig_LiveRanking = Grid::AddColumn(GridConfig_LiveRanking, C_Column_Rank, 10., Grid::C_Align_Center);
@@ -86,7 +86,7 @@ Text GetML() {
 	for (I, 0, SmallTeamsNb - 1) {
 		ML_SmallLiveRanking ^= """<frameinstance modelid="framemodel-ranking-line" pos="0 {{{-I * Size_Team.Y}}}" />""";
 	}
-	
+
 	return MV::Create(
 GetId(), 3,
 """
@@ -196,7 +196,7 @@ Boolean IsSpawned(CSmPlayer _Player) {
 
 K_State SetVisibility(K_State _State, Boolean _DisplayModule, Boolean _PlayerEnabled, Boolean _HasRanking, Boolean _NoDelay, Boolean _InputPlayerIsSpawned) {
 	declare K_State State = _State;
-	
+
 	declare Integer Delay = C_SpecModeActivationDelay;
 	if (_InputPlayerIsSpawned || _NoDelay) {
 		Delay = 0;
@@ -226,7 +226,7 @@ K_State SetVisibility(K_State _State, Boolean _DisplayModule, Boolean _PlayerEna
 	} else {
 		AnimMgr.Add(State.Controls.Frame_DisplayButton, "<a pos=\"{{{-Size_Clip.X}}} 0\" hidden=\"1\" />", Now + Delay, C_DisplayAnimDuration, CAnimManager::EAnimManagerEasing::QuadOut);
 	}
-	
+
 	if (State.IsDisplayed_BigLiveRanking) {
 		AnimMgr.Add(State.Controls.Frame_LiveRanking, "<a pos=\"0 0\" hidden=\"0\" />", Now + Delay, C_DisplayAnimDuration, CAnimManager::EAnimManagerEasing::QuadOut);
 		State.Controls.Button_Toggle.ImageUrl = "{{{Icons::C_Icon_128x128_Arrow_Left_Oblique}}}";
@@ -283,7 +283,7 @@ Void UpdateSmallLiveRanking(K_State _State, Integer[][] _TeamsRanking) {
 			break;
 		}
 	}
-	
+
 	// Gather teams to display
 	declare {{{Ranking::P}}}K_TeamRank[] LiveRanking;
 	if (_State.NotEliminatedTeamsNb <= 4 || _TeamsRanking.count <= 4) {
@@ -415,7 +415,7 @@ K_State UpdateLiveRanking(K_State _State, Integer[][] _TeamsRanking) {
 			declare {{{Ranking::P}}}K_TeamRank TeamRank = {{{Ranking::P}}}GetTeamRank(_TeamsRanking[Key], Key + 1);
 			declare Integer TeamPrevRank = State.TeamsPrevRank.get(TeamRank.TeamId, State.Controls.Frame_Teams.Controls.count + 1);
 			State.TeamsPrevRank[TeamRank.TeamId] = Key + 1;
-			
+
 			if (!TeamRank.Eliminated) {
 				declare CMlFrame Frame_Team <=> (Control as CMlFrame);
 				declare CMlQuad Button_SpecTeam <=> (Frame_Team.GetFirstChild("button-spec-team") as CMlQuad);
@@ -435,7 +435,7 @@ K_State UpdateLiveRanking(K_State _State, Integer[][] _TeamsRanking) {
 
 				Quad_RankBg.BgColor = Clans::GetClanColor(TeamRank.TeamId);
 				FocusTeam(Frame_Team, State.TargetPlayerClan, TeamScore_TeamId, TeamRank.TeamId == State.TargetPlayerClan);
-				
+
 				if (TeamRank.Rank < State.EliminationRank) {
 					Quad_TimeBg.BgColor = C_Color_BGValueBetter;
 				} else {
@@ -489,7 +489,7 @@ K_State UpdateLiveRanking(K_State _State, Integer[][] _TeamsRanking) {
 			AnimMgr.Add(State.Controls.Quad_LiveRankingLine, "<a pos=\""^Pos.X^" "^Pos.Y^"\" />", C_LiveRankingAnimDuration, CAnimManager::EAnimManagerEasing::QuadOut);
 		}
 	}
-	
+
 	AnimMgr.Flush(State.Controls.Quad_LiveRankingBg);
 	declare Real BgSizeY = (TeamsNb * {{{Size_Team.Y}}});
 	if (State.Controls.Quad_LiveRankingLine.Visible) {

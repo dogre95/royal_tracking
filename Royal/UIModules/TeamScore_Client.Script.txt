@@ -1,7 +1,7 @@
 /**
  *	UI module: TeamScore client side
  */
-#Const Version		"1.0.0"
+#Const Version		"1.0.1"
 #Const ScriptName	"Libs/Nadeo/Trackmania/Modes/Royal/UIModules/TeamScore_Client.Script.txt"
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -77,7 +77,7 @@ Text GetML() {
 	declare Vec2 Size_LogoBackground = <45., 12.7>;
 	declare Vec2 Size_Logo = <(Size_LogoBackground.X * 0.45) - 5., Size_LogoBackground.Y - 1.>;
 	declare Vec2 Pos_Logo = <-Size_LogoBackground.X * 0.92, Size_LogoBackground.Y * -0.5>;
-	
+
 	declare Vec2 Pos_TeamRanking = <0., 0.>;
 	declare Vec2 Size_RankTotal = <10., Size_LogoBackground.Y * 0.85>;
 	declare Vec2 Pos_RankTotal = <-Size_RankTotal.X - 1., -2.6>;
@@ -85,7 +85,7 @@ Text GetML() {
 	declare Vec2 Pos_RankCurrent = <Pos_RankTotal.X + 1., -1.>;
 
 	declare Vec2 Size_BonusTime = <Size_LogoBackground.X, 8.>;
-	declare Vec2 Pos_BonusTime = <0., Pos_TeamRanking.Y - Size_LogoBackground.Y - 0.7>;
+	declare Vec2 Pos_BonusTime = <0., Pos_TeamRanking.Y - Size_LogoBackground.Y - 1.>;
 	declare Vec2 Pos_BonusTimeContent = <0., Size_BonusTime.Y * -0.5>;
 	declare Grid::K_GridConfig GridConfig_BonusTime = Grid::Create(Size_BonusTime.X, 1., 1., Grid::C_Direction_Left);
 	GridConfig_BonusTime = Grid::AddColumn(GridConfig_BonusTime, C_Column_BonusTimeValue, 25., Grid::C_Align_Right);
@@ -101,7 +101,7 @@ Text GetML() {
 	GridConfig_Members = Grid::AddColumn(GridConfig_Members, C_Column_Points, 15., Grid::C_Align_Right);
 	GridConfig_Members = Grid::AddColumn(GridConfig_Members, C_Column_MVP, 10., Grid::C_Align_Center);
 	declare Grid::K_Grid Grid_Members = Grid::Compile(GridConfig_Members);
-	
+
 	declare Vec2 Size_PointsBackground = <32.2, 32.2 * (72. / 388.)>;
 	declare Vec2 Pos_PointsBackground = <0.5, Pos_Members.Y - (MembersNb * Size_Member.Y) + (Size_Member.Y * 0.5) - 1.>;
 	declare Vec2 Size_Points = Size_PointsBackground - <4., 1.>;
@@ -180,6 +180,7 @@ GetId(), 3,
 #Include "Libs/Nadeo/Trackmania/Modes/Knockout/Components/EliminationStatus.Script.txt" as EliminationStatus
 #Include "Libs/Nadeo/CMGame/Utils/Task.Script.txt" as Task
 #Include "Libs/Nadeo/CMGame/Utils/MainUser.Script.txt" as MainUser
+#Include "Libs/Nadeo/Trackmania/Modes/Royal/TeamScore.Script.txt" as TeamScore
 
 #Struct K_Controls {
 	CMlFrame Frame_Global;
@@ -318,7 +319,7 @@ K_State UpdatePoints(
 			TargetPlayerLogin = _TargetPlayer.User.Login;
 		}
 	}
-	
+
 	// Show/Hide UI if we are following a player or not
 	State = SetVisibility(State, State.IsDisplayed_DisplayModule, HasValidTarget(_TargetPlayer));
 
@@ -331,7 +332,7 @@ K_State UpdatePoints(
 				break;
 			}
 		}
-		
+
 		// Set the eliminiation status for elimination warning
 		EliminationStatus::SetOwnerEliminated(UI, TargetTeamRank.Rank >= State.EliminationRank);
 
@@ -356,7 +357,7 @@ K_State UpdatePoints(
 					}
 					Members.add(K_Member {
 						User = Score.User,
-						Points = {{{Ranking::P}}}GetPlayerSegmentsNb(Score),
+						Points = {{{Ranking::P}}}GetPlayerSegmentsPoints(Score),
 						PrevRank = Royal_TeamScore_NewRank,
 						NewRank = NewRank
 					});
@@ -368,6 +369,10 @@ K_State UpdatePoints(
 				}
 			}
 		}
+
+		declare Real Height = {{{Size_LogoBackground.Y}}} + 1. + {{{Size_BonusTime.Y}}} + 1. + {{{Size_Member.Y}}} * Members.count;
+		TeamScore::SetHeight(This, Height);
+
 		foreach (Key => Control in State.Controls.Frame_Members.Controls) {
 			if (Key < Members.count) {
 				declare CMlFrame Frame_Member <=> (Control as CMlFrame);
@@ -377,7 +382,7 @@ K_State UpdatePoints(
 				declare CMlQuad Quad_MVP <=> (Frame_Member.GetFirstChild("quad-mvp") as CMlQuad);
 
 				declare K_Member Member = Members[Key];
-				
+
 				declare Text TeamScore_PlayerLogin for Button_SpecPlayer = "";
 				TeamScore_PlayerLogin = Member.User.Login;
 				{{{PlayerName::P}}}SetUser(This, PlayerName_Name, Member.User, True);
@@ -668,9 +673,9 @@ if (PageIsVisible) {
 				foreach (Player in Players) {
 					if (Player.Score != Null) {
 						declare Integer Royal_TeamScore_PrevPoints for Player.Score = 0;
-						declare Integer Royal_TeamScore_PrevSegmentsNb for Player.Score = 0;
+						declare Integer Royal_TeamScore_PrevSegmentsPoints for Player.Score = 0;
 						Royal_TeamScore_PrevPoints = Player.Score.Points;
-						Royal_TeamScore_PrevSegmentsNb = {{{Ranking::P}}}GetPlayerSegmentsNb(Player.Score);
+						Royal_TeamScore_PrevSegmentsPoints = {{{Ranking::P}}}GetPlayerSegmentsPoints(Player.Score);
 					}
 				}
 				State = UpdatePoints(
@@ -699,9 +704,9 @@ if (PageIsVisible) {
 							Royal_TeamScore_PrevPoints = Player.Score.Points;
 							NeedUpdate = True;
 						}
-						declare Integer Royal_TeamScore_PrevSegmentsNb for Player.Score = 0;
-						if (Royal_TeamScore_PrevSegmentsNb != {{{Ranking::P}}}GetPlayerSegmentsNb(Player.Score)) {
-							Royal_TeamScore_PrevSegmentsNb = {{{Ranking::P}}}GetPlayerSegmentsNb(Player.Score);
+						declare Integer Royal_TeamScore_PrevSegmentsPoints for Player.Score = 0;
+						if (Royal_TeamScore_PrevSegmentsPoints != {{{Ranking::P}}}GetPlayerSegmentsPoints(Player.Score)) {
+							Royal_TeamScore_PrevSegmentsPoints = {{{Ranking::P}}}GetPlayerSegmentsPoints(Player.Score);
 							NeedUpdate = True;
 						}
 					}

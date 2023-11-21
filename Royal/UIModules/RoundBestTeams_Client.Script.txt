@@ -151,14 +151,14 @@ declare Text[Integer] G_ScheduledSounds;
 Void DisplayBestTeams(CMlFrame _Frame_Slots, {{{PlayerName::P}}}K_UserInfo[][Integer] _PlayerUserInfos, Integer _BestTeamsNb) {
 	declare Integer[][] TeamsRanking = {{{Ranking::P}}}GetTeamsRanking();
 	declare Integer StartAnim = Now + C_AnimDuration_BeforeBestTeams;
-	
+
 	for (FrameIndex, 1, C_SlotsNb) {
 		declare Integer SlotIndex = C_SlotsNb - FrameIndex + 1; //< Invert the for loop
 		declare CMlFrame Frame_Slot <=> (_Frame_Slots.GetFirstChild("frame-slot-"^SlotIndex) as CMlFrame);
 
 		if (Frame_Slot != Null) {
 			Frame_Slot.Hide();
-			
+
 			if (TeamsRanking.existskey(SlotIndex - 1)) {
 				declare {{{Ranking::P}}}K_TeamRank TeamRank = {{{Ranking::P}}}GetTeamRank(TeamsRanking[SlotIndex - 1], SlotIndex);
 				declare CMlQuad Quad_Logo <=> (Frame_Slot.GetFirstChild("quad-logo") as CMlQuad);
@@ -222,7 +222,7 @@ Void DisplayBestTeams(CMlFrame _Frame_Slots, {{{PlayerName::P}}}K_UserInfo[][Int
 					Quad_Logo.ImageUrl = Logo;
 					Quad_LogoBg.Opacity = BgOpacity;
 				}
-				
+
 				Label_Rank.Visible = !TeamRank.Eliminated;
 				if (Label_Rank.Visible) Label_Rank.TextColor = RankColor;
 			}
@@ -253,7 +253,7 @@ Void DisplayButtons(Boolean _DisplayButtons) {
 
 Boolean SetButtonsAreVisible(CMlFrame _Frame_VAlign, CMlQuad _Quad_Background, CMlQuad _Quad_BackgroundButtons, Boolean _ButtonsAreVisible) {
 	EnableMenuNavigation(_ButtonsAreVisible, False, False, Null, C_InputPriority);
-	
+
 	AnimMgr.Flush(_Frame_VAlign);
 	AnimMgr.Flush(_Quad_Background);
 	AnimMgr.Flush(_Quad_BackgroundButtons);

@@ -60,7 +60,7 @@
 #Const C_Column_Points 3
 #Const C_Column_Time 4
 
-//L16N [Track Browser] %1 MUST STAY AT THE END OF THE STRING !!! %1 will be replaced by the name of the author of the track, e.g. "by PlayerA". If your language does not permit to keep the %1 at the end of the string, do not translate "By" and just keep the text "%1" 
+//L16N [Track Browser] %1 MUST STAY AT THE END OF THE STRING !!! %1 will be replaced by the name of the author of the track, e.g. "by PlayerA". If your language does not permit to keep the %1 at the end of the string, do not translate "By" and just keep the text "%1"
 #Const C_Text_AuthorName _("|NameOnTheRight|By %1")
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -157,9 +157,9 @@ Text GetML() {
 
 			declare Real PosY = -Row * Size_TeamBlock.Y;
 			ML_Teams ^= """
-			<frameinstance modelid="framemodel-team" 
+			<frameinstance modelid="framemodel-team"
 				id="button-team-{{{Col}}}-{{{Row}}}"
-				pos="{{{MLHelpers::SkewX(PosX, PosY, SkewAngle)}}} {{{PosY}}}" 
+				pos="{{{MLHelpers::SkewX(PosX, PosY, SkewAngle)}}} {{{PosY}}}"
 				class="{{{Navigation::C_Class}}} {{{C_Class_Team_Button}}}"
 				data-nav-inputs="select;left;right;up;down"
 				data-nav-targets="_;{{{LeftNavTarget}}};{{{RightNavTarget}}};{{{UpNavTarget}}};{{{DownNavTarget}}}"
@@ -255,7 +255,7 @@ Text GetML() {
 					data-nav-locked="{{{!VoiceChatEnabled}}}"
 					hidden="{{{!VoiceChatEnabled}}}"
 				/>
-				<frameinstance 
+				<frameinstance
 					z-index="2"
 					id="loading-spinner-speaker-{{{I}}}"
 					modelid="{{{LoadingSpinner::C_Name}}}"
@@ -268,7 +268,7 @@ Text GetML() {
 		</frame>
 		""";
 	}
-	
+
 
 	declare Text ManialinkId = GetId();
 	return MV::Create(
@@ -305,7 +305,7 @@ Text GetML() {
 	<frameinstance id="playername-name" modelid="{{{PlayerName::C_Name}}}" pos="{{{Pos_PlayerName.X}}} {{{Pos_PlayerName.Y}}}" data-size="{{{Size_Player.X * 0.6}}} {{{Size_Player.Y}}}" data-halign="left" data-valign="center" data-textsize="{{{TextSize_TeamName}}}" data-textcolor="ffffff" data-textfont="{{{Stylesheet::GetFont(Stylesheet::C_Font_Weight_ExtraBold)}}}" data-textprefix="$t$i" />
 	<frame id="frame-voice-chat" hidden="1" pos="{{{Pos_PlayerVoiceChatSpeaker.X}}} {{{Pos_PlayerVoiceChatSpeaker.Y}}}">
 		<quad id="quad-speaker" size="6 6" colorize="FFF" class="quad-base"/>
-		<frameinstance 
+		<frameinstance
 			z-index="2"
 			id="loading-spinner-speaker"
 			modelid="{{{LoadingSpinner::C_Name}}}"
@@ -346,9 +346,9 @@ Text GetML() {
 				{{{ML_Teams}}}
 			</frame>
 			<!-- My team -->
-			<frameinstance id="frame-my-team" 
+			<frameinstance id="frame-my-team"
 				z-index="3"
-				modelid="framemodel-team" 
+				modelid="framemodel-team"
 				{{{MLHelpers::Pos(Pos_MyTeam)}}}
 				class="{{{Navigation::C_Class}}} {{{C_Class_Team_Button}}}"
 				data-nav-inputs="select;cancel"
@@ -360,7 +360,7 @@ Text GetML() {
 			<label id="label-clipboard" z-index="2" size="{{{SizeX_ClipboardMessage}}} 5" pos="154 80" class="text-semibold" halign="right" valign="center2" textsize="{{{TextSize_ClipboardMessage}}}" focusareacolor1="00000000" focusareacolor2="00000030" scriptevents="1" />
 			<!-- Selected team pop up -->
 			<frame id="frame-selected-team" z-index="3" hidden="1">
-				<frameinstance 
+				<frameinstance
 					id="selected-team-background"
 					modelid="{{{PopUpBackground::C_Name}}}"
 					data-styles="{{{PopUpBackground::C_Style_SecondaryPopUp_WithHeader}}}"
@@ -514,7 +514,7 @@ Void Focus(CMlControl _From, CMlControl _To, Integer _TargetPlayerClan) {
 			{{{ExpendableButton::P}}}Unfocus(This, (_From as CMlFrame));
 		}
 	}
-	
+
 	if (_To != Null) {
 		{{{Navigation::P}}}Focus(This, _To);
 		if (_To.HasClass(C_Class_Team_Button)) {
@@ -822,7 +822,7 @@ K_State UpdateTeamRank(K_State _State, CMlFrame _Frame_Team, {{{Ranking::P}}}K_T
 
 	declare Integer TeamScore_TeamId for _Frame_Team = 0;
 	TeamScore_TeamId = _TeamRank.TeamId;
-	
+
 	if (_TargetPlayer != Null) {
 		FocusTeam(_Frame_Team, _TargetPlayer.CurrentClan, TeamScore_TeamId, _TargetPlayer.CurrentClan == _TeamRank.TeamId);
 		if (_Frame_Team.ControlId != "frame-my-team" && _TargetPlayer.CurrentClan == _TeamRank.TeamId && _Frame_Team.HasClass(C_Class_Team_Button)) {
@@ -866,7 +866,7 @@ K_State UpdateTeamsRanking(K_State _State, Integer _TeamsRankingUpdate, Integer[
 	} else {
 		State.TargetPlayerClan = _TargetPlayer.CurrentClan;
 	}
-	
+
 	if (_TeamsRanking.count <= 0) {
 		State.Controls.Label_TeamsNb.Value = "{{{Text_ZeroTeams}}}";
 	} else if (_TeamsRanking.count == 1) {
@@ -931,7 +931,7 @@ K_State SetClipboardMessage(K_State _State, Text _DisplayedMessage, Text _Clipbo
 		}
 		State.Controls.Label_Clipboard.Visible = True;
 	}
-	
+
 	// Stock match id for Report system
 	if (TL::StartsWith(MenuConst::C_CLUB_MatchId_Beginning, State.ClipboardValue)) {
 		{{{ProfilePlayerInfo::P}}}SetMatchAndMatchmakingId(State.ClipboardValue, C_RoyalMatchmakingId);
@@ -1054,7 +1054,7 @@ Void UpdateControllerInfos(CMlFrame _Frame_ButtonList) {
 	}
 }
 
-Void DisplayProfile(Boolean _Display, CUser _User, CMlFrame _Frame_Profile, CMlFrame _Frame_ButtonList) {	
+Void DisplayProfile(Boolean _Display, CUser _User, CMlFrame _Frame_Profile, CMlFrame _Frame_ButtonList) {
 	if (_Display) {
 		{{{ProfilePlayerInfo::P}}}SetUser(_User);
 	} else {
@@ -1115,7 +1115,7 @@ Void MuteAll() {
 K_State Select(CMlControl _Control, K_State _State) {
 	if (_Control == Null) return _State;
 	declare K_State State = _State;
-	
+
 	if (_Control.HasClass(C_Class_Team_Button)) {
 		declare Integer TeamScore_TeamId for _Control = 0;
 		if (TeamScore_TeamId > 0) {
@@ -1132,7 +1132,7 @@ K_State Select(CMlControl _Control, K_State _State) {
 		// When player wants to spectate another player from the pause menu scores table, we resume to the game
 		if ({{{ScoresTableVisibility::P}}}EnabledFromMenu()) {
 			{{{ScoresTableVisibility::P}}}SetEnabledFromMenu(False);
-			CloseInGameMenu(CMlScriptIngame::EInGameMenuResult::Resume);	
+			CloseInGameMenu(CMlScriptIngame::EInGameMenuResult::Resume);
 		}
 	} else if (_Control.HasClass(C_Class_Profile_Button)) {
 		declare Text CurrentPlayerAccountId for _Control.Parent.Parent = "";
@@ -1150,7 +1150,7 @@ K_State Select(CMlControl _Control, K_State _State) {
 }
 
 Void RedrawPlayersList(Boolean _VoiceChatEnabled, CMlFrame _Frame_PlayersList) {
-	foreach (Control in _Frame_PlayersList.Controls) {			
+	foreach (Control in _Frame_PlayersList.Controls) {
 		declare CMlFrame Frame_Select <=> (Control as CMlFrame).GetFirstChild("frame-player-selected") as CMlFrame;
 		if (Frame_Select != Null) {
 			if (_VoiceChatEnabled) {

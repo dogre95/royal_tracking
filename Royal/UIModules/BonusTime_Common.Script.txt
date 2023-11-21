@@ -18,7 +18,7 @@
 	Id = "Royal_BonusTime", //< Do not modify this Id once in production. It is used by the xmlrpc protocole and would break compatibility.
 	IsCustomizable = True,
 	Properties = UIModules_Common::K_ModuleProperties {
-		Position = <0., 57.>,
+		Position = <0., 59.>,
 		Scale = 1.,
 		Visible = True
 	}

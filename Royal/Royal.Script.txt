@@ -1,7 +1,7 @@
-/** 
+/**
  *	Royal mode helper library
  */
-#Const Version		"1.2.0"
+#Const Version		"1.0.1"
 #Const ScriptName	"Libs/Nadeo/Trackmania/Modes/Royal/Royal.Script.txt"
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -30,8 +30,6 @@
 	Text AccountId;
 	Ident PlayerId;
 	Integer CurrentSegment;
-	Integer StarsNb;
-	Integer LastStarTime;
 }
 #Struct K_Team {
 	Integer Id;
@@ -55,21 +53,6 @@
 #Struct K_RankingUpdate {
 	Integer UpdateTime;
 	Integer CooldownTime;
-}
-#Struct K_StarsSettings {
-	Integer StarsNbToUnlockNextSegment;
-	Integer StarsReward_First;
-	Integer StarsReward_Record;
-	Integer StarsReward_Gold;
-	Integer StarsReward_Silver;
-	Integer StarsReward_Bronze;
-	Real StarsTimeRatio_Gold;
-	Real StarsTimeRatio_Silver;
-}
-#Struct K_SectionRecord {
-	Integer Record;
-	Integer Gold;
-	Integer Silver;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -95,27 +78,6 @@
 
 #Const C_RankingUpdateCooldown 1000
 #Const C_OutroWithoutScoresTableDuration 750
-#Const C_StarsTimeMinGap 1000
-
-#Const C_ModeVariant_Null 0
-#Const C_ModeVariant_Classic 1
-#Const C_ModeVariant_Stars 2
-
-#Const C_StartSettings_Null K_StarsSettings {
-	StarsNbToUnlockNextSegment = 0,
-	StarsReward_First = 0,
-	StarsReward_Record = 0,
-	StarsReward_Gold = 0,
-	StarsReward_Silver = 0,
-	StarsReward_Bronze = 0,
-	StarsTimeRatio_Gold = 0.,
-	StarsTimeRatio_Silver = 0.
-}
-#Const C_SectionRecord_Null K_SectionRecord {
-	Record = 0,
-	Gold = 0,
-	Silver = 0
-}
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 // Globales
@@ -129,9 +91,6 @@ declare K_RankingUpdate G_RankingUpdate;
 declare Integer G_EliminationRank;
 declare Integer G_UnlockedSegmentIndex; //< Starts at 0 for white segment
 declare Boolean G_PlayersRankingDirty;
-declare Integer G_ModeVariant;
-declare K_StarsSettings G_StarsSettings;
-declare K_SectionRecord[Integer] G_SectionRecords;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 // Functions
@@ -140,13 +99,13 @@ declare K_SectionRecord[Integer] G_SectionRecords;
 // Create a new team if it does not exist yet
 K_Team[Integer] Private_CreateTeamIfNew(K_Team[Integer] _Teams, Integer _TeamId, Boolean _Eliminated) {
 	if (_Teams.existskey(_TeamId)) return _Teams;
-	
+
 	// If the new team is eliminated it must be ranked last
 	declare Integer EliminationOrder = C_NotEliminated;
 	if (_Eliminated) {
 		EliminationOrder = C_AutoEliminated;
 	}
-	
+
 	declare K_Team[Integer] UpdatedTeams = _Teams;
 	UpdatedTeams[_TeamId] = K_Team {
 		Id = _TeamId,
@@ -174,9 +133,7 @@ K_Member[Text] Private_AddMemberIfNew(K_Member[Text] _Members, Text _AccountId) 
 	UpdatedMembers[_AccountId] = K_Member {
 		AccountId = _AccountId,
 		PlayerId = NullId,
-		CurrentSegment = 0,
-		StarsNb = 0,
-		LastStarTime = -1
+		CurrentSegment = 0
 	};
 	return UpdatedMembers;
 }
@@ -247,7 +204,7 @@ Void AddTeamMember(Text _AccountId, Integer _TeamId, Boolean _NewTeamIsEliminate
 			RemoveTeamMember(_AccountId); // Leave old team before joining the new one
 		}
 	}
-	
+
 	G_AccountIdToTeamId[_AccountId] = _TeamId;
 	G_Teams = Private_CreateTeamIfNew(G_Teams, _TeamId, _NewTeamIsEliminated);
 	G_Teams[_TeamId].Members = Private_AddMemberIfNew(G_Teams[_TeamId].Members, _AccountId);
@@ -288,25 +245,25 @@ Void UnlinkPlayerFromTeamMember(Text _AccountId) {
  */
 Int2 GetTeamBotLevelRange(Integer _TeamId, Int2 _MaxRange, Int2 _MaxDeviation) {
 	if (!G_Teams.existskey(_TeamId)) return <0, 0>;
-	
+
 	declare K_Team Team = G_Teams[_TeamId];
-	
+
 	if (Team.BotLevel == C_BotLevelNull) {
 		Team.BotLevel = ML::Rand(_MaxRange.X, _MaxRange.Y);
 		G_Teams[_TeamId] = Team;
 	}
-	
+
 	declare Integer X = ML::Clamp(Team.BotLevel + _MaxDeviation.X, _MaxRange.X, _MaxRange.Y);
 	declare Integer Y = ML::Clamp(Team.BotLevel + _MaxDeviation.Y, X, _MaxRange.Y);
-	
+
 	return <X, Y>;
 }
 
 Integer GetTeamBotLevel(Integer _TeamId, Int2 _MaxRange, Int2 _MaxDeviation) {
 	if (!G_Teams.existskey(_TeamId)) return 0;
-	
+
 	declare Int2 BotLevelRange = GetTeamBotLevelRange(_TeamId, _MaxRange, _MaxDeviation);
-	
+
 	return ML::Rand(BotLevelRange.X, BotLevelRange.Y);
 }
 
@@ -336,7 +293,7 @@ Void SetGhostDriverPlaylist(CSmPlayer _Player, CGhost[] _Ghosts) {
 	foreach (Ghost in _Ghosts) {
 		GhostDriver_Playlist_Add(_Player, Ghost);
 	}
-	
+
 	declare Boolean Royal_HasGhostDriverPlaylist for _Player = False;
 	Royal_HasGhostDriverPlaylist = _Ghosts.count > 0;
 }
@@ -412,20 +369,19 @@ Boolean CanSpawn(CSmPlayer _Player, Boolean _BonusTimeIsActive) {
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Player finishes a segment
-K_Team Private_CompleteSegment(
-	K_Team _Team,
-	CSmPlayer _Player,
-	Integer _RaceTime,
-	Boolean _BonusTimeIsActive,
-	Integer _BonusTime
-) {
-	declare K_Team Team = _Team;
+/// Player finish a segment
+Void CompleteSegment(CSmPlayer _Player, Integer _RaceTime, Boolean _BonusTimeIsActive, Integer _BonusTime) {
+	if (_Player == Null || _Player.User == Null || _RaceTime <= 0 || _Player.StartTime < 0 || _Player.StartTime + _RaceTime > Now) return;
+	declare K_Team Team = GetTeam(_Player);
+	if (TeamIsNull(Team)) return;
+
+	// If the bonus time is active, only teams with some bonus time left can complete segments
+	if (_BonusTimeIsActive && Team.BonusTimeEndTime <= Now) return;
 
 	Team.Members[_Player.User.WebServicesUserId].CurrentSegment += 1;
 	declare Integer CurrentSegment = Team.Members[_Player.User.WebServicesUserId].CurrentSegment;
 	Tracking::SendPlayerRoyalSegment(UIManager, _Player, CurrentSegment);
-	
+
 	// Give bonus time only during the first loop of the player and if the bonus time is not already active
 	declare Integer BonusTime = 0;
 	if (!_BonusTimeIsActive && _BonusTime > 0 && CurrentSegment <= G_Starts.count) {
@@ -433,13 +389,13 @@ K_Team Private_CompleteSegment(
 		Team.BonusTime += BonusTime;
 		UIModules_TeamScore::SetTeamBonusTime(Team.Id, Team.BonusTime);
 	}
-	
+
 	// The segment is not activated by the team yet
 	if (CurrentSegment > Team.SegmentTimes.count) {
 		declare Integer SegmentTime = _Player.StartTime + _RaceTime - G_MapStartTime;
 		Team.SegmentTimes.add(SegmentTime);
 		Team.SegmentMinSpawnTimes.add(Now + C_OutroWithoutScoresTableDuration + Race::C_SpawnDuration);
-		
+
 		if (Const::C_StayAtBlackSegment) {
 			declare Integer LoopNb = ML::Max(0, Team.SegmentTimes.count - G_Starts.count + 1);
 			UIModules_SegmentProgression::SetTeamProgression(
@@ -490,7 +446,7 @@ K_Team Private_CompleteSegment(
 		if (Team.SegmentTimes[CurrentSegment - 1] > _Player.StartTime + _RaceTime) {
 			Team.SegmentTimes[CurrentSegment - 1] = _Player.StartTime + _RaceTime;
 		}
-		
+
 		// This player did not activated this segment yet
 		if (Const::C_StayAtBlackSegment) {
 			UIModules_SegmentComplete::CompleteSegment(
@@ -514,94 +470,14 @@ K_Team Private_CompleteSegment(
 			);
 		}
 	}
-	
+
 	foreach (Member in Team.Members) {
 		if (Member.PlayerId != NullId && AllPlayers.existskey(Member.PlayerId)) {
 			UIModules_SegmentProgression::SetCanJoinTeam(AllPlayers[Member.PlayerId], Member.CurrentSegment < Team.SegmentTimes.count);
 		}
 	}
 
-	return Team;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Compute a time based on a percentage of the record time
-Integer Private_ComputeSectionTime(Integer _RecordTime, Real _Percentage) {
-	declare Integer RecordTime = _RecordTime + ML::NearestInteger(_RecordTime * _Percentage);
-	if (RecordTime % 1000 != 0) {
-		RecordTime = RecordTime - (RecordTime % 1000) + 1000; //< Round the time to the upper second
-	}
-	return RecordTime;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Get a new section record instance based on a new record time
-K_SectionRecord Private_GetNewSectionRecord(K_StarsSettings _StarsSettings, Integer _RecordTime) {
-	declare K_SectionRecord SectionRecord = K_SectionRecord {
-		Record = _RecordTime,
-		Gold = Private_ComputeSectionTime(_RecordTime, _StarsSettings.StarsTimeRatio_Gold),
-		Silver = Private_ComputeSectionTime(_RecordTime, _StarsSettings.StarsTimeRatio_Silver)
-	};
-	// Make sure there's a gap of at least `C_StarsTimeMinGap` milliseconds between the star times
-	if (SectionRecord.Gold < SectionRecord.Record + C_StarsTimeMinGap) {
-		SectionRecord.Gold = Private_ComputeSectionTime(SectionRecord.Record + C_StarsTimeMinGap, 0.);
-	}
-	if (SectionRecord.Silver < SectionRecord.Gold + C_StarsTimeMinGap) {
-		SectionRecord.Silver = Private_ComputeSectionTime(SectionRecord.Gold + C_StarsTimeMinGap, 0.);
-	}
-	return SectionRecord;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Player finishes one run on a segment
-Void CompleteSegment(Boolean _IsUsingStarsProgession, CSmPlayer _Player, Integer _RaceTime, Boolean _BonusTimeIsActive, Integer _BonusTime) {
-	if (_Player == Null || _Player.User == Null || _RaceTime <= 0 || _Player.StartTime < 0 || _Player.StartTime + _RaceTime > Now) return;
-	declare K_Team Team = GetTeam(_Player);
-	if (TeamIsNull(Team)) return;
-
-	// If the bonus time is active, only teams with some bonus time left can complete segments
-	if (_BonusTimeIsActive && Team.BonusTimeEndTime <= Now) return;
-
-	if (_IsUsingStarsProgession) {
-		declare Integer CurrentSegment = Team.Members[_Player.User.WebServicesUserId].CurrentSegment;
-		declare K_SectionRecord SectionRecord = G_SectionRecords.get(CurrentSegment, C_SectionRecord_Null);
-		declare Integer StarsReward = G_StarsSettings.StarsReward_Bronze;
-
-		// First time
-		if (SectionRecord.Record <= 0) {
-			G_SectionRecords[CurrentSegment] = Private_GetNewSectionRecord(G_StarsSettings, _RaceTime);
-			StarsReward = G_StarsSettings.StarsReward_First;
-		}
-		// Beat record
-		else if (_RaceTime < SectionRecord.Record) {
-			G_SectionRecords[CurrentSegment] = Private_GetNewSectionRecord(G_StarsSettings, _RaceTime);
-			StarsReward = G_StarsSettings.StarsReward_Record;
-		}
-		// Beat gold
-		else if (_RaceTime < SectionRecord.Gold) {
-			StarsReward = G_StarsSettings.StarsReward_Gold;
-		}
-		// Beat silver
-		else if (_RaceTime < SectionRecord.Silver) {
-			StarsReward = G_StarsSettings.StarsReward_Silver;
-		}
-
-		Team.Members[_Player.User.WebServicesUserId].StarsNb += StarsReward;
-		Team.Members[_Player.User.WebServicesUserId].LastStarTime = _Player.StartTime + _RaceTime;
-
-		if (Team.Members[_Player.User.WebServicesUserId].StarsNb >= G_StarsSettings.StarsNbToUnlockNextSegment) {
-			Team.Members[_Player.User.WebServicesUserId].StarsNb = 0;
-			Team.Members[_Player.User.WebServicesUserId].LastStarTime = -1;
-			Team = Private_CompleteSegment(Team, _Player, _RaceTime, _BonusTimeIsActive, _BonusTime);
-		}
-	} else {
-		Team = Private_CompleteSegment(Team, _Player, _RaceTime, _BonusTimeIsActive, _BonusTime);
-	}
-
 	G_Teams[Team.Id] = Team;
-}
-Void CompleteSegment(CSmPlayer _Player, Integer _RaceTime, Boolean _BonusTimeIsActive, Integer _BonusTime) {
-	CompleteSegment(G_ModeVariant == C_ModeVariant_Stars, _Player, _RaceTime, _BonusTimeIsActive, _BonusTime);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -612,12 +488,12 @@ Void CompleteSegment(CSmPlayer _Player, Integer _RaceTime, Boolean _BonusTimeIsA
 Void RespawnWithTeam(CSmPlayer _Player) {
 	declare K_Team Team = GetTeam(_Player);
 	if (TeamIsNull(Team)) return;
-	
+
 	declare Boolean AllSegmentsUnlocked = (
 		(Const::C_UnlockAllSegmentsOnLoop && Team.SegmentTimes.count >= G_Starts.count) || //< The team unlocked all segments
 		G_UnlockedSegmentIndex >= G_Starts.count - 1 //< The mode unlocked all segments
 	);
-	
+
 	if (
 		Team.Members[_Player.User.WebServicesUserId].CurrentSegment < Team.SegmentTimes.count && (
 			AllSegmentsUnlocked ||
@@ -635,7 +511,7 @@ Void RespawnWithTeam(CSmPlayer _Player) {
 		if (Race::IsRacing(_Player)) {
 			Race::Wait(_Player);
 		}
-		
+
 		G_Teams[Team.Id] = Team;
 	}
 }
@@ -648,7 +524,7 @@ Void RespawnWithTeam(CSmPlayer _Player) {
  */
 Boolean StartBonusTime() {
 	declare Integer[Integer] BonusTimeEndTimes;
-	
+
 	foreach (TeamId => Team in G_Teams) {
 		if (Team.BonusTime > 0) {
 			declare Integer BonusTimeEndTime = Now + (Team.BonusTime * 1000);
@@ -664,9 +540,9 @@ Boolean StartBonusTime() {
 			}
 		}
 	}
-	
+
 	UIModules_Countdown::SetBonusTimeEndTimes(BonusTimeEndTimes);
-	
+
 	return (BonusTimeEndTimes.count > 0);
 }
 
@@ -678,7 +554,7 @@ Boolean StartBonusTime() {
  */
 Boolean UnspawnTeamsOutOfBonusTime() {
 	declare Boolean AllTeamsRanOutOfBonusTime = True;
-	
+
 	foreach (TeamId => Team in G_Teams) {
 		if (Team.BonusTimeEndTime > 0) {
 			if (Team.BonusTimeEndTime > Now) {
@@ -693,7 +569,7 @@ Boolean UnspawnTeamsOutOfBonusTime() {
 			}
 		}
 	}
-	
+
 	return AllTeamsRanOutOfBonusTime;
 }
 
@@ -733,7 +609,7 @@ Integer GetNotEliminatedTeamsNb() {
  */
 Void ApplySpectatorModeRestriction(CSmPlayer _Player, Boolean _ApplySpectatorModeRestriction) {
 	if (_Player == Null || _Player.User == Null || _Player.User.IsFakeUser || ServerAdmin == Null) return;
-	
+
 	declare K_Team Team = GetTeam(_Player);
 	if (_ApplySpectatorModeRestriction && Team.Id == C_TeamNullId) {
 		ServerAdmin.ForceSpectator(_Player.User, CServerAdmin::ESpecMode::SpectatorForced);
@@ -755,13 +631,13 @@ Void ApplySpectatorModeRestriction(CSmPlayer _Player, Boolean _ApplySpectatorMod
 Int2 GetConnectedPlayersNb() {
 	declare Int2 ConnectedPlayersNb;
 	declare Text[] ConnectedPlayersAccountId;
-	
+
 	foreach (Player in AllPlayers) {
 		if (Player.User != Null) {
 			ConnectedPlayersAccountId.add(Player.User.WebServicesUserId);
 		}
 	}
-	
+
 	foreach (Team in G_Teams) {
 		if (!Team.Eliminated) {
 			foreach (Member in Team.Members) {
@@ -772,7 +648,7 @@ Int2 GetConnectedPlayersNb() {
 			}
 		}
 	}
-	
+
 	return ConnectedPlayersNb;
 }
 
@@ -793,225 +669,70 @@ Void Private_UpdateScoresTable(K_Team[] _TeamsRanking) {
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Sort Teams by connected players number
-K_Team[] Private_SortQueue_ByConnectedPlayersNb(
-	K_Team[Integer] _Teams,
-	K_Team[] _SortedTeams,
-	Integer[] _TeamIdsToSort
-) {
-	declare Integer[Integer] SortTeamIdsByConnectedPlayersNb;
-	foreach (TeamId in _TeamIdsToSort) {
-		declare K_Team Team = _Teams[TeamId];
-		declare Integer ConnectedPlayersNb;
-		foreach (Member in Team.Members) {
-			if (Member.PlayerId != NullId && AllPlayers.existskey(Member.PlayerId)) {
-				ConnectedPlayersNb += 1;
-			}
-		}
-		SortTeamIdsByConnectedPlayersNb[Team.Id] = ConnectedPlayersNb;
-	}
-	declare Integer[][] SortedTeamIdsByConnectedPlayersNb = Scores::SortKeysByPoints(SortTeamIdsByConnectedPlayersNb, Scores::C_Order_Descending, -1);
-
-	declare K_Team[] SortedTeams = _SortedTeams;
-	foreach (TeamIds in SortedTeamIdsByConnectedPlayersNb) {
-		foreach (TeamId in TeamIds) {
-			SortedTeams.add(_Teams[TeamId]);
-		}
-	}
-
-	return SortedTeams;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Sort teams by previous map rank
-K_Team[] Private_SortQueue_ByPreviousMapRank(
-	K_Team[Integer] _Teams,
-	K_Team[] _SortedTeams,
-	Integer[] _TeamIdsToSort
-) {
-	declare Integer[Integer] SortTeamIdsByPreviousMapRank;
-	foreach (TeamId in _TeamIdsToSort) {
-		SortTeamIdsByPreviousMapRank[TeamId] = _Teams[TeamId].PreviousMapRank;
-	}
-	declare Integer[][] SortedTeamIdsByPreviousMapRank = Scores::SortKeysByPoints(SortTeamIdsByPreviousMapRank, Scores::C_Order_Ascending, C_NotRanked);
-
-	declare K_Team[] SortedTeams = _SortedTeams;
-	foreach (TeamIds in SortedTeamIdsByPreviousMapRank) {
-		if (TeamIds.count <= 1) {
-			SortedTeams.add(_Teams[TeamIds[0]]);
-		} else {
-			SortedTeams = Private_SortQueue_ByConnectedPlayersNb(_Teams, SortedTeams, TeamIds);
-		}
-	}
-
-	return SortedTeams;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Sort teams by fastest player to reach the most stars
-K_Team[] Private_SortQueue_ByFirstPlayersToReachMostStars(
-	K_Team[Integer] _Teams,
-	K_Team[] _SortedTeams,
-	Integer[] _TeamIdsToSort,
-	Integer[Integer] _TeamsLastStarTimes
-) {
-	declare Integer[Integer] SortTeamIdsByFirstPlayersToReachMostStars;
-	foreach (TeamId in _TeamIdsToSort) {
-		SortTeamIdsByFirstPlayersToReachMostStars[TeamId] = _TeamsLastStarTimes.get(TeamId, -1);
-	}
-	declare Integer[][] SortedTeamIdsByFirstPlayersToReachMostStars = Scores::SortKeysByPoints(SortTeamIdsByFirstPlayersToReachMostStars, Scores::C_Order_Ascending, -1);
-
-	declare K_Team[] SortedTeams = _SortedTeams;
-	foreach (TeamIds in SortedTeamIdsByFirstPlayersToReachMostStars) {
-		if (TeamIds.count <= 1) {
-			SortedTeams.add(_Teams[TeamIds[0]]);
-		} else {
-			SortedTeams = Private_SortQueue_ByPreviousMapRank(_Teams, SortedTeams, TeamIds);
-		}
-	}
-
-	return SortedTeams;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Sort teams by player with the most stars
-K_Team[] Private_SortQueue_ByPlayerWithMostStars(
-	K_Team[Integer] _Teams,
-	K_Team[] _SortedTeams,
-	Integer[] _TeamIdsToSort
-) {
-	declare Integer[Integer] SortTeamIdsByPlayerWithMostStars;
-	declare Integer[Integer] TeamsLastStarTimes;
-	foreach (TeamId in _TeamIdsToSort) {
-		declare K_Team Team = _Teams[TeamId];
-		declare Integer StarsMax = 0;
-		foreach (Member in Team.Members) {
-			if (Member.StarsNb > StarsMax) {
-				StarsMax = Member.StarsNb;
-				TeamsLastStarTimes[TeamId] = Member.LastStarTime;
-			}
-		}
-		SortTeamIdsByPlayerWithMostStars[TeamId] = StarsMax;
-	}
-	declare Integer[][] SortedTeamIdsByPlayerWithMostStars = Scores::SortKeysByPoints(SortTeamIdsByPlayerWithMostStars, Scores::C_Order_Descending, 0);
-
-	declare K_Team[] SortedTeams = _SortedTeams;
-	foreach (TeamIds in SortedTeamIdsByPlayerWithMostStars) {
-		if (TeamIds.count <= 1) {
-			SortedTeams.add(_Teams[TeamIds[0]]);
-		} else {
-			SortedTeams = Private_SortQueue_ByFirstPlayersToReachMostStars(_Teams, SortedTeams, TeamIds, TeamsLastStarTimes);
-		}
-	}
-
-	return SortedTeams;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Sort teams by number of completed segments
-K_Team[] Private_SortQueue_ByCompletedSegmentsNb(
-	K_Team[Integer] _Teams,
-	K_Team[] _SortedTeams,
-	Integer[] _TeamIdsToSort
-) {
-	declare Integer[Integer] SortTeamIdsByCompletedSegmentsNb;
-	foreach (TeamId in _TeamIdsToSort) {
-		SortTeamIdsByCompletedSegmentsNb[TeamId] = _Teams[TeamId].SegmentTimes.count;
-	}
-	declare Integer[][] SortedTeamIdsByCompletedSegmentsNb = Scores::SortKeysByPoints(SortTeamIdsByCompletedSegmentsNb, Scores::C_Order_Descending, 0);
-
-	declare K_Team[] SortedTeams = _SortedTeams;
-	foreach (TeamIds in SortedTeamIdsByCompletedSegmentsNb) {
-		if (TeamIds.count <= 1) {
-			SortedTeams.add(_Teams[TeamIds[0]]);
-		} else {
-			SortedTeams = Private_SortQueue_ByPlayerWithMostStars(_Teams, SortedTeams, TeamIds);
-		}
-	}
-
-	return SortedTeams;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Sort teams by segment times
-K_Team[] Private_SortQueue_BySegmentsTimes(
-	K_Team[Integer] _Teams,
-	K_Team[] _SortedTeams,
-	Integer[] _TeamIdsToSort
-) {
-	declare Integer[][Integer] SortTeamIdsBySegmentsTimes;
-	foreach (TeamId in _TeamIdsToSort) {
-		SortTeamIdsBySegmentsTimes[TeamId] = _Teams[TeamId].SegmentTimes;
-	}
-	declare Integer[][Integer] SortedTeamIdsBySegmentsTimes = Scores::SortKeysByWaypointTimes(SortTeamIdsBySegmentsTimes);
-
-	declare K_Team[] SortedTeams = _SortedTeams;
-	foreach (TeamIds in SortedTeamIdsBySegmentsTimes) {
-		if (TeamIds.count <= 1) {
-			SortedTeams.add(_Teams[TeamIds[0]]);
-		} else {
-			SortedTeams = Private_SortQueue_ByPreviousMapRank(_Teams, SortedTeams, TeamIds);
-		}
-	}
-
-	return SortedTeams;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Sort teams by elimination order
-K_Team[] Private_SortQueue_ByEliminationOrder(
-	Integer _ModeVariant,
-	K_Team[Integer] _Teams,
-	K_Team[] _SortedTeams,
-	Integer[] _TeamIdsToSort
-) {
-	declare Integer[Integer] SortTeamIdsByEliminationOrder;
-	declare Integer[] NotEliminatedTeamIds;
-	foreach (TeamId in _TeamIdsToSort) {
-		declare K_Team Team = _Teams[TeamId];
-		if (Team.Eliminated) {
-			SortTeamIdsByEliminationOrder[Team.Id] = Team.EliminationOrder;
-		} else {
-			NotEliminatedTeamIds.add(Team.Id);
-		}
-	}
-	declare Integer[Integer] SortedTeamIdsByEliminationOrder = SortTeamIdsByEliminationOrder.sortreverse();
-
-	declare K_Team[] SortedTeams = _SortedTeams;
-	if (_ModeVariant == C_ModeVariant_Stars) {
-		SortedTeams = Private_SortQueue_ByCompletedSegmentsNb(_Teams, SortedTeams, NotEliminatedTeamIds);
-	} else {
-		SortedTeams = Private_SortQueue_BySegmentsTimes(_Teams, SortedTeams, NotEliminatedTeamIds);
-	}
-	foreach (TeamId => EliminationOrder in SortedTeamIdsByEliminationOrder) {
-		SortedTeams.add(_Teams[TeamId]);
-	}
-
-	return SortedTeams;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Sort teams with different criterion depending on the mode variant
-K_Team[] Private_SortTeams(K_Team[Integer] _Teams, Integer _ModeVariant) {
-	declare Integer[] TeamIdsToSort;
-	foreach (Team in _Teams) TeamIdsToSort.add(Team.Id);
-	return Private_SortQueue_ByEliminationOrder(_ModeVariant, _Teams, [], TeamIdsToSort);
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /// Update the teams ranking
 K_Team[] UpdateRanking(Boolean _UpdateScoresTable) {
-	declare K_Team[] SortedTeams = Private_SortTeams(G_Teams, G_ModeVariant);
+	declare K_Team[] SortedTeams;
 
+	// Separate eliminated teams
+	declare Integer[Integer] SortedByEliminationOrderTeamIds;
+	declare Integer[][Integer] SortBySegmentTimesTeamIds;
 	declare Integer LatestSegmentTime;
 	foreach (Team in G_Teams) {
-		if (
-			!Team.Eliminated &&
-			Team.SegmentTimes.count > 0 &&
-			Team.SegmentTimes[Team.SegmentTimes.count - 1] > LatestSegmentTime
-		) {
-			LatestSegmentTime = Team.SegmentTimes[Team.SegmentTimes.count - 1];
+		if (Team.Eliminated) {
+			SortedByEliminationOrderTeamIds[Team.Id] = Team.EliminationOrder;
+		} else {
+			SortBySegmentTimesTeamIds[Team.Id] = Team.SegmentTimes;
+			if (Team.SegmentTimes.count > 0 && Team.SegmentTimes[Team.SegmentTimes.count - 1] > LatestSegmentTime) {
+				LatestSegmentTime = Team.SegmentTimes[Team.SegmentTimes.count - 1];
+			}
 		}
+	}
+	SortedByEliminationOrderTeamIds = SortedByEliminationOrderTeamIds.sortreverse();
+
+	// Sort teams by segment times
+	declare Integer[][Integer] SortedBySegmentsTimesTeamIds = Scores::SortKeysByWaypointTimes(SortBySegmentTimesTeamIds);
+	foreach (TeamIds in SortedBySegmentsTimesTeamIds) {
+		if (TeamIds.count <= 1) {
+			SortedTeams.add(G_Teams[TeamIds[0]]);
+		} else {
+			// Sort teams by previous map rank
+			declare Integer[Integer] SortByPreviousMapRankTeamIds;
+			foreach (TeamId in TeamIds) {
+				SortByPreviousMapRankTeamIds[TeamId] = G_Teams[TeamId].PreviousMapRank;
+			}
+			declare Integer[][] SortedByPreviousMapRankTeamIds = Scores::SortKeysByPoints(SortByPreviousMapRankTeamIds, Scores::C_Order_Ascending, C_NotRanked);
+
+			foreach (TeamIds in SortedByPreviousMapRankTeamIds) {
+				if (TeamIds.count <= 1) {
+					SortedTeams.add(G_Teams[TeamIds[0]]);
+				} else {
+					// Sort Teams by connected players number
+					declare Integer[Integer] SortByConnectedPlayersNbTeamIds;
+					foreach (TeamId in TeamIds) {
+						declare K_Team Team = G_Teams[TeamId];
+						declare Integer ConnectedPlayersNb;
+						foreach (Member in Team.Members) {
+							if (Member.PlayerId != NullId && AllPlayers.existskey(Member.PlayerId)) {
+								ConnectedPlayersNb += 1;
+							}
+						}
+						SortByConnectedPlayersNbTeamIds[Team.Id] = ConnectedPlayersNb;
+					}
+					declare Integer[][] SortedByConnectedPlayersNbTeamIds = Scores::SortKeysByPoints(SortByConnectedPlayersNbTeamIds, Scores::C_Order_Descending, -1);
+
+					foreach (TeamIds in SortedByConnectedPlayersNbTeamIds) {
+						foreach (TeamId in TeamIds) {
+							SortedTeams.add(G_Teams[TeamId]);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Add eliminated teams
+	foreach (TeamId => EliminationOrder in SortedByEliminationOrderTeamIds) {
+		SortedTeams.add(G_Teams[TeamId]);
 	}
 
 	declare Integer MinTimeDiff = 0;
@@ -1019,14 +740,14 @@ K_Team[] UpdateRanking(Boolean _UpdateScoresTable) {
 	foreach (Key => Team in SortedTeams) {
 		declare K_Team UpdatedTeam = Team;
 		UpdatedTeam.Rank = Key + 1;
-		
+
 		// Update players' dossard
 		foreach (Member in UpdatedTeam.Members) {
 			if (Member.PlayerId != NullId && AllPlayers.existskey(Member.PlayerId)) {
 				UpdateDossard(AllPlayers[Member.PlayerId], UpdatedTeam.Rank);
 			}
 		}
-		
+
 		// Compute time diff with first team
 		if (Key <= 0) {
 			LeaderSegmentTimes = UpdatedTeam.SegmentTimes;
@@ -1045,41 +766,48 @@ K_Team[] UpdateRanking(Boolean _UpdateScoresTable) {
 			} else {
 				UpdatedTeam.TimeDiff = 0;
 			}
-			
+
 			if (UpdatedTeam.TimeDiff > MinTimeDiff) {
 				MinTimeDiff = UpdatedTeam.TimeDiff;
 			} else {
 				UpdatedTeam.TimeDiff = MinTimeDiff;
 			}
 		}
-		
+
 		G_Teams[UpdatedTeam.Id] = UpdatedTeam;
 		SortedTeams[Key] = UpdatedTeam;
 	}
-	
+
 	if (_UpdateScoresTable) {
 		Private_UpdateScoresTable(SortedTeams);
 	}
-	
+
 	G_RankingUpdate.UpdateTime = -1;
 	G_RankingUpdate.CooldownTime = Now + C_RankingUpdateCooldown;
 
 	// Update players ranking
 	if (G_PlayersRankingDirty) {
 		G_PlayersRankingDirty = False;
-	
+
 		// Sort player by points
 		declare Integer[Ident] ScoreIdsToSortByPoints;
 		foreach (Score in Scores) {
-			ScoreIdsToSortByPoints[Score.Id] = Ranking::GetPlayerSegmentsNb(Score);
+			ScoreIdsToSortByPoints[Score.Id] = Ranking::GetPlayerSegmentsPoints(Score);
 		}
 		declare Ident[][] ScoreIdsSortedByPoints = Scores::SortIdsByPoints(ScoreIdsToSortByPoints, Scores::C_Order_Descending, 0);
-		
+
 		declare Integer Points = Scores.count;
 		foreach (ScoreIds in ScoreIdsSortedByPoints) {
 			declare Ident[][] ScoreIdsSortedByLastSegmentTime;
 			if (ScoreIds.count > 1) {
-				// Sort player by last segment activation time (player who activated a checkpoint last will be first)
+				/*
+				In Royal Classic only the first player to complete a segment gets a point.
+				If player A completes the white segment first, then player B completes the white segment second
+				and the green segment first and player A completes the green segment second.
+				Both players have earned only one point each. They are tied.
+				The player who completed a segment last is ranked first because the segment they completed is the hardest.
+				PlayerB is first and PlayerA is second, because the green segment is harder to complete than the white segment.
+				 */
 				declare Integer[Ident] ScoreIdsToSortByLastSegmentTime;
 				foreach (ScoreId in ScoreIds) {
 					ScoreIdsToSortByLastSegmentTime[ScoreId] = Ranking::GetPlayerLastSegmentTime(Scores[ScoreId]);
@@ -1088,7 +816,7 @@ K_Team[] UpdateRanking(Boolean _UpdateScoresTable) {
 			} else {
 				ScoreIdsSortedByLastSegmentTime = [[ScoreIds[0]]];
 			}
-			
+
 			// Compute the ranking
 			foreach (ScoreIds in ScoreIdsSortedByLastSegmentTime) {
 				foreach (ScoreId in ScoreIds) {
@@ -1098,7 +826,7 @@ K_Team[] UpdateRanking(Boolean _UpdateScoresTable) {
 			}
 		}
 	}
-	
+
 	return SortedTeams;
 }
 K_Team[] UpdateRanking() {
@@ -1120,10 +848,10 @@ Void ThrottleUpdateRanking() {
  */
 Integer GetEliminationsNb(Integer _TargetRoundsNb, Integer _PlayedRoundsNb) {
 	declare Integer NotEliminatedTeamsNb = GetNotEliminatedTeamsNb();
-	
+
 	if (NotEliminatedTeamsNb > 1) {
 		declare Integer RemainingRoundsNb = _TargetRoundsNb - _PlayedRoundsNb;
-		
+
 		// We played all rounds, find a winner
 		if (RemainingRoundsNb <= 0) {
 			return NotEliminatedTeamsNb - 1;
@@ -1135,7 +863,7 @@ Integer GetEliminationsNb(Integer _TargetRoundsNb, Integer _PlayedRoundsNb) {
 			return EliminationsNb;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -1158,9 +886,9 @@ K_Team[] EliminateLastTeams(Integer _EliminatedTeamsNb) {
 		}
 		Key -= 1;
 	}
-	
+
 	Private_UpdateScoresTable(RankedTeams);
-	
+
 	return EliminatedTeams;
 }
 
@@ -1173,13 +901,13 @@ K_Team[] EliminateLastTeams(Integer _EliminatedTeamsNb) {
 K_Team[] EliminateLastTeams(Integer _TargetRoundsNb, Integer _PlayedRoundsNb) {
 	declare Integer EliminationsNb = GetEliminationsNb(_TargetRoundsNb, _PlayedRoundsNb);
 	declare K_Team[] EliminatedTeams;
-	
+
 	if (EliminationsNb > 0) {
 		EliminatedTeams = EliminateLastTeams(EliminationsNb);
 	}
-	
+
 	Log::Log("""[Royal] EliminateLastTeams() > _TargetRoundsNb : {{{_TargetRoundsNb}}} | _PlayedRoundsNb : {{{_PlayedRoundsNb}}} | EliminationsNb : {{{EliminationsNb}}} | EliminatedTeams : {{{EliminatedTeams}}}""");
-	
+
 	return EliminatedTeams;
 }
 
@@ -1207,7 +935,7 @@ Void UpdatePoints() {
 /// Reset the race of all teams
 Void ResetRaces() {
 	UIModules_SegmentProgression::ResetTeamsProgression();
-	
+
 	foreach (Team in G_Teams) {
 		declare K_Team UpdatedTeam = Team;
 		UpdatedTeam.Rank = C_NotRanked;
@@ -1218,20 +946,18 @@ Void ResetRaces() {
 		UpdatedTeam.BonusTimeEndTime = -1;
 		foreach (AccountId => Member in UpdatedTeam.Members) {
 			UpdatedTeam.Members[AccountId].CurrentSegment = 0;
-			UpdatedTeam.Members[AccountId].StarsNb = 0;
-			UpdatedTeam.Members[AccountId].LastStarTime = -1;
 		}
 		G_Teams[Team.Id] = UpdatedTeam;
-		
+
 		UIModules_SegmentProgression::SetTeamProgression(Team.Id, 1, 0);
 	}
 	UIModules_Countdown::SetBonusTimeEndTimes([]);
 	UIModules_TeamScore::ResetTeamsBonusTime();
-	
+
 	foreach (Player in AllPlayers) {
 		UIModules_SegmentProgression::SetCanJoinTeam(Player, False);
 	}
-	
+
 	foreach (Score in Scores) {
 		Ranking::ResetPlayerSegment(Score);
 	}
@@ -1260,7 +986,7 @@ Void InitializeMatch() {
 Boolean InitializeMap() {
 	UpdatePreviousMapRank();
 	ResetRaces();
-	
+
 	// Initialize starts
 	G_Starts = [];
 	declare CMapLandmark[] Starts = Map::GetStarts();
@@ -1272,19 +998,18 @@ Boolean InitializeMap() {
 	foreach (Start in SortedStarts) {
 		G_Starts.add(Start);
 	}
-	
+
 	if (G_Starts.count > 0) {
 		Map::SetDefaultStart(G_Starts[0]);
 	}
-	
+
 	G_UnlockedSegmentIndex = 0;
-	G_SectionRecords = [];
-	
+
 	UIModules_SegmentProgression::SetSegmentsNb(G_Starts.count);
 	UIModules_SegmentProgression::SetUnlockedSegment(G_UnlockedSegmentIndex + 1);
 	UIModules_SegmentComplete::ResetSegments();
-	
-	
+
+
 	return G_Starts.count > 0;
 }
 
@@ -1372,30 +1097,6 @@ Void SendTeamMatchResult(K_Team _Team, Boolean _IsWinner, Boolean _IsSuperRoyalF
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/// Set the stars settings
-Void SetStarsSettings(
-	Integer _StarsNbToUnlockNextSegment,
-	Integer _StarsReward_First,
-	Integer _StarsReward_Record,
-	Integer _StarsReward_Gold,
-	Integer _StarsReward_Silver,
-	Integer _StarsReward_Bronze,
-	Real _StarsTimeRatio_Gold,
-	Real _StarsTimeRatio_Silver
-) {
-	G_StarsSettings = K_StarsSettings {
-		StarsNbToUnlockNextSegment = _StarsNbToUnlockNextSegment,
-		StarsReward_First = _StarsReward_First,
-		StarsReward_Record = _StarsReward_Record,
-		StarsReward_Gold = _StarsReward_Gold,
-		StarsReward_Silver = _StarsReward_Silver,
-		StarsReward_Bronze = _StarsReward_Bronze,
-		StarsTimeRatio_Gold = _StarsTimeRatio_Gold,
-		StarsTimeRatio_Silver = _StarsTimeRatio_Silver
-	};
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /// Update the library
 Void Yield() {
 	if (G_RankingUpdate.UpdateTime >= 0 && G_RankingUpdate.UpdateTime <= Now) {
@@ -1416,20 +1117,10 @@ Void Unload() {
 	}
 	G_Starts = [];
 	G_RankingUpdate = C_RankingUpdateNull;
-	G_StarsSettings = C_StartSettings_Null;
-	G_SectionRecords = [];
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /// Load the library
-Void Load(Integer _ModeVariant) {
-	G_ModeVariant = _ModeVariant;
-	assert(
-		G_ModeVariant == C_ModeVariant_Classic || G_ModeVariant == C_ModeVariant_Stars,
-		"Unknow mode variant"
-	);
-	Unload();
-}
 Void Load() {
-	Load(C_ModeVariant_Classic);
+	Unload();
 }

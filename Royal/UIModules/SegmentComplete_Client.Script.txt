@@ -1,7 +1,7 @@
 /**
  *	UI module: SegmentComplete client side
  */
-#Const Version		"1.1.0"
+#Const Version		"1.0.0"
 #Const ScriptName	"Libs/Nadeo/Trackmania/Modes/Royal/UIModules/SegmentComplete_Client.Script.txt"
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -110,7 +110,6 @@ GetId(), 3,
 #Const C_DisplayDuration 3000
 #Const C_PadInputs {{{dump(CommonConst::C_PadInputCharacters)}}}
 #Const C_StayAtBlackSegment {{{dump(RoyalConst::C_StayAtBlackSegment)}}}
-#Const C_Default_DisplayJoinTeam {{{dump(UIModules_SegmentComplete_Common::C_Default_DisplayJoinTeam)}}}
 
 #Const C_Margin_ButtonJoin {{{dump(Margin_ButtonJoin)}}}
 """,
@@ -153,7 +152,6 @@ declare CMlQuad Quad_ButtonJoin;
 
 declare netread K_LastSegmentActivation[Integer] Net_Royal_SegmentComplete_LastSegmentActivations for Teams[0];
 declare netread Integer Net_Royal_SegmentComplete_LastSegmentActivationsUpdate for Teams[0];
-declare netread Boolean Net_Royal_SegmentComplete_DisplayJoinTeam for Teams[0] = C_Default_DisplayJoinTeam;
 
 declare Boolean DisplayModule;
 declare Integer LastSegmentActivationsUpdate;
@@ -221,7 +219,7 @@ if (PageIsVisible) {
 			) {
 				declare K_LastSegmentActivation LastSegmentActivation = Net_Royal_SegmentComplete_LastSegmentActivations[TargetedClan];
 				ClanLastSegmentActivationTime = LastSegmentActivation.Time;
-				
+
 				// Find player name, use team name otherwise
 				declare Text Name = Clans::GetClanName(TargetedClan);
 				if (LastSegmentActivation.AccountId != "") {
@@ -241,7 +239,7 @@ if (PageIsVisible) {
 					Name != "" && (
 						!LastSegmentActivation.OnlyBonusTime || (
 							GUIPlayer != Null &&
-							GUIPlayer.User != Null && 
+							GUIPlayer.User != Null &&
 							GUIPlayer.User.WebServicesUserId == LastSegmentActivation.AccountId &&
 							LastSegmentActivation.BonusTime != 0
 						)
@@ -290,15 +288,14 @@ if (PageIsVisible) {
 						}
 					} else if (
 						(InputPlayer != Null && InputPlayer.SpawnStatus == CSmPlayer::ESpawnStatus::NotSpawned) ||
-						!LastSegmentActivation.CanJoin ||
-						!Net_Royal_SegmentComplete_DisplayJoinTeam
+						!LastSegmentActivation.CanJoin
 					) {
 						// The player you are spectating has finished the segment
 						// Or you cannot join your teammates yet
 						MessageValue = GetCompleteMessage(Name, LastSegmentActivation.LoopNb, Segment);
 					} else {
 						// A player from your team has finished the segment
-						
+
 						// Find latest active input device
 						declare Integer MinIdleDuration = 0;
 						declare CInputPad ActivePad = Null;
@@ -314,7 +311,7 @@ if (PageIsVisible) {
 							declare Text Binding_Restart = Input.GetActionBinding(ActivePad, "Vehicle", "GiveUp");
 							declare Text BindingRaw_Restart = Input.GetActionBindingRaw(ActivePad, "Vehicle", "GiveUp");
 							DisplayButtonJoin = ButtonIcon::CanGetPadButtonIcon(ActivePad) && BindingRaw_Restart != "";
-				
+
 							if (DisplayButtonJoin) {
 								Quad_ButtonJoin.ImageUrl = ButtonIcon::GetPadButtonIcon(System, ActivePad, BindingRaw_Restart);
 								JoinValue = "{{{Text_JoinTeam}}}";
@@ -328,7 +325,7 @@ if (PageIsVisible) {
 						} else {
 							JoinValue = TL::Compose("{{{Text_JoinTeamKeyboard}}}", "{{{Text_NoBind}}}");
 						}
-						
+
 						MessageValue = GetCompleteMessage(Name, LastSegmentActivation.LoopNb, Segment);
 					}
 

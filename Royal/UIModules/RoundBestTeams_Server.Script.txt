@@ -50,7 +50,7 @@ Integer GetAnimationDuration(Integer _BestTeamsNb) {
 Integer SendBestTeamsNb(Integer _BestTeamsNb) {
 	declare netwrite Integer Net_Royal_RoundEliminations_BestTeamsNb for Teams[0];
 	Net_Royal_RoundEliminations_BestTeamsNb = _BestTeamsNb;
-	
+
 	return GetAnimationDuration(_BestTeamsNb);
 }
 
@@ -65,7 +65,7 @@ Void SetVisibility(CPlayer _Player, Boolean _Display) {
 	if (_Player == Null) return;
 	declare CUIConfig UI <=> UIManager.GetUI(_Player);
 	if (UI == Null) return;
-	
+
 	declare netwrite Boolean Net_Royal_RoundBestTeams_IsVisible for UI;
 	Net_Royal_RoundBestTeams_IsVisible = _Display;
 }
@@ -77,7 +77,7 @@ Void SetVisibility(CPlayer _Player, Boolean _Display) {
  */
 Void InitializePlayer(CPlayer _Player) {
 	if (_Player == Null) return;
-	
+
 	SetVisibility(_Player, False);
 }
 

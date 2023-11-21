@@ -359,7 +359,7 @@ Void Focus(CMlControl _From, CMlControl _To) {
 			{{{Button::P}}}Unfocus(This, (_From as CMlFrame));
 		}
 	}
-	
+
 	if (_To != Null) {
 		{{{Navigation::P}}}Focus(This, _To);
 		if ({{{Button::P}}}IsButton(_To)) {
@@ -540,7 +540,7 @@ K_State SetResult(
 		} else {
 			State.Controls.Quad_Lion.ImageUrl = "{{{Img_Lion}}}";
 		}
-		
+
 		// Set team members' name
 		declare {{{PlayerName::P}}}K_UserInfo[] TeamMembers;
 		declare Integer MyMemberKey = -1;

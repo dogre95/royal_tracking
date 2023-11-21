@@ -33,7 +33,7 @@ UIModules_Common::K_ModuleConfig GetConfig() {
 Integer GetAnimationDuration(Integer _EliminatedTeamsNb) {
 	declare Integer PagesNb = 0;
 	if (_EliminatedTeamsNb >= 1) PagesNb = ((_EliminatedTeamsNb - 1) / UIModules_RoundEliminations_Common::C_SlotsNb) + 1;
-	
+
 	if (PagesNb <= 0) {
 		return (
 			UIModules_RoundEliminations_Common::C_AnimDuration_UIShow +
@@ -69,7 +69,7 @@ Integer SendEliminatedTeams(Integer[Integer] _EliminatedTeams) {
 	declare netwrite Integer Net_Royal_RoundEliminations_EliminatedTeamsUpdate for Teams[0];
 	Net_Royal_RoundEliminations_EliminatedTeams = _EliminatedTeams;
 	Net_Royal_RoundEliminations_EliminatedTeamsUpdate += 1;
-	
+
 	return GetAnimationDuration(_EliminatedTeams.count);
 }
 
@@ -84,7 +84,7 @@ Void SetVisibility(CPlayer _Player, Boolean _Display) {
 	if (_Player == Null) return;
 	declare CUIConfig UI <=> UIManager.GetUI(_Player);
 	if (UI == Null) return;
-	
+
 	declare netwrite Boolean Net_Royal_RoundEliminations_IsVisible for UI;
 	Net_Royal_RoundEliminations_IsVisible = _Display;
 }
@@ -96,7 +96,7 @@ Void SetVisibility(CPlayer _Player, Boolean _Display) {
  */
 Void InitializePlayer(CPlayer _Player) {
 	if (_Player == Null) return;
-	
+
 	SetVisibility(_Player, False);
 }
 
@@ -104,7 +104,7 @@ Void InitializePlayer(CPlayer _Player) {
 /// Unload the library
 Void Unload() {
 	SendEliminatedTeams([]);
-	
+
 	foreach (Player in AllPlayers) {
 		InitializePlayer(Player);
 	}

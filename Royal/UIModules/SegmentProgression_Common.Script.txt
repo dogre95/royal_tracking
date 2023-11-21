@@ -1,7 +1,7 @@
 /**
  *	UI module: SegmentProgression common
  */
-#Const Version		"1.1.0"
+#Const Version		"1.0.0"
 #Const ScriptName	"Libs/Nadeo/Trackmania/Modes/Royal/UIModules/SegmentProgression_Common.Script.txt"
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -23,5 +23,3 @@
 		Visible = True
 	}
 }
-
-#Const C_Default_DisplayJoinTeam True

@@ -204,7 +204,7 @@ Void {{{P}}}Focus(CMlControl _From, CMlControl _To) {
 			{{{Button::P}}}Unfocus(This, (_From as CMlFrame));
 		}
 	}
-	
+
 	if (_To != Null) {
 		{{{Navigation::P}}}Focus(This, _To);
 		if ({{{Button::P}}}IsButton(_To)) {
@@ -240,7 +240,7 @@ Void {{{P}}}SetVisibility(Boolean _IsVisible, Integer[Integer] _TeamsRank, Boole
 	{{{Navigation::P}}}Lock({{{P}}}G_State.Controls.Button_Wait, !{{{P}}}G_State.Controls.Button_Wait.Visible);
 	{{{Navigation::P}}}Lock({{{P}}}G_State.Controls.Button_Quit, !{{{P}}}G_State.Controls.Button_Quit.Visible);
 	{{{Navigation::P}}}Lock({{{P}}}G_State.Controls.Button_Stay, !{{{P}}}G_State.Controls.Button_Stay.Visible);
-	
+
 	if ({{{P}}}G_State.DisplayButtons) {
 		declare CMlControl CurrentFocus = {{{Navigation::P}}}GetFocusedControl(This, {{{P}}}C_NavGroup_Buttons);
 		if (DisplayWaitButton) {

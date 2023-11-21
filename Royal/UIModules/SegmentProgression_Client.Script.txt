@@ -1,7 +1,7 @@
 /**
  *	UI module: SegmentProgression client side
  */
-#Const Version		"1.1.0"
+#Const Version		"1.0.0"
 #Const ScriptName	"Libs/Nadeo/Trackmania/Modes/Royal/UIModules/SegmentProgression_Client.Script.txt"
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -58,7 +58,7 @@ Text GetML() {
 	declare Text Text_JoinTeam = _("Advance to %1");
 	//L16N [RoyalTeamProgression] Text displayed if an action is not bound to a button.
 	declare Text Text_NoBind = _("|Input|No binding");
-	
+
 	declare Text[Integer] Img_ProgressionMasks = [
 		1 => C_ImgPath^"/hud_royal_ingame_progression_mask_01.dds",
 		2 => C_ImgPath^"/hud_royal_ingame_progression_mask_02.dds",
@@ -220,7 +220,6 @@ GetId(), 3,
 	Integer NextUnlockTime;
 	Boolean DisplayUnlockTimer;
 	Boolean AlwaysDisplayUnlockTimer;
-	Boolean DisplayJoinTeam;
 	Boolean CanJoinTeam;
 	Boolean InputPlayerIsSpawned;
 	Ident ActivePadId;
@@ -240,7 +239,6 @@ GetId(), 3,
 #Const C_StayAtBlackSegment {{{dump(RoyalConst::C_StayAtBlackSegment)}}}
 #Const C_SpecModeActivationDelay 1000
 #Const C_Pos_MessageLabel {{{dump(Pos_MessageLabel)}}}
-#Const C_Default_DisplayJoinTeam {{{dump(UIModules_SegmentProgression_Common::C_Default_DisplayJoinTeam)}}}
 """,
 """
 Vec3 GetSegmentColor(Integer _Segment) {
@@ -253,7 +251,7 @@ Vec3 GetSegmentColor(Integer _Segment) {
 
 K_State InitializeGauge(K_State _State) {
 	declare K_State State = _State;
-	
+
 	declare CMlFrame Frame_Progression <=> (State.Controls.Frame_DisplayAnim.GetFirstChild("frame-progression") as CMlFrame);
 	State.Controls.Frame_Gauge <=> (Frame_Progression.GetFirstChild("frame-gauge") as CMlFrame);
 	State.Controls.Quad_GaugeProgression <=> (State.Controls.Frame_Gauge.GetFirstChild("quad-gauge") as CMlQuad);
@@ -359,7 +357,7 @@ K_State UpdateLoop(K_State _State, Integer _LoopsNb, Boolean _SkipAnim) {
 			}
 		}
 	}
-	
+
 	return State;
 }
 
@@ -385,7 +383,7 @@ K_State UpdateLock(K_State _State) {
 		AnimMgr.Add(State.Controls.Frame_Timer, "<a pos=\""^TargetPosX^" "^State.Controls.Frame_Timer.RelativePosition_V3.Y^"\" />", 250, CAnimManager::EAnimManagerEasing::QuadOut);
 		State.DisplayUnlockTimer = True;
 	}
-	
+
 	return State;
 }
 
@@ -423,7 +421,7 @@ K_State SetVisibility(K_State _State, Boolean _HasValidTarget, Boolean _DisplayM
 			AnimMgr.Add(State.Controls.Frame_DisplayAnim, "<a pos=\"0 {{{Size_Clip.Y}}}\" hidden=\"1\" />", C_DisplayAnimDuration, CAnimManager::EAnimManagerEasing::QuadOut);
 		}
 	}
-	
+
 	return State;
 }
 
@@ -483,13 +481,12 @@ K_State UpdateJoinTeam(K_State _State) {
 	declare K_State State = _State;
 
 	declare Boolean DisplayMessage = (
-		State.DisplayJoinTeam &&
 		State.CanJoinTeam &&
 		State.InputPlayerIsSpawned && (
 			(C_UnlockAllSegmentsOnLoop && State.LoopsNb > 0) ||
 			(!C_StayAtBlackSegment && State.TargetPlayerSegment < State.UnlockedSegment) || (
 				C_StayAtBlackSegment && (
-					(State.TargetPlayerSegment < State.TargetTeamSegment && State.TargetPlayerSegment < State.UnlockedSegment) || 
+					(State.TargetPlayerSegment < State.TargetTeamSegment && State.TargetPlayerSegment < State.UnlockedSegment) ||
 					(State.UnlockedSegment >= State.SegmentsNb && State.LoopsNb > 0)
 				)
 			)
@@ -526,8 +523,7 @@ K_State UpdateProgression(
 	Integer _TargetPlayerSegment,
 	Boolean _CanJoinTeam,
 	Boolean _InputPlayerIsSpawned,
-	Boolean _AlwaysDisplayUnlockTimer,
-	Boolean _DisplayJoinTeam
+	Boolean _AlwaysDisplayUnlockTimer
 ) {
 	declare K_State State = _State;
 	declare Boolean PrevIsDisplayed = State.IsDisplayed;
@@ -586,15 +582,13 @@ K_State UpdateProgression(
 	declare Boolean JoinTeamUpdate = False;
 	if (
 		State.CanJoinTeam != _CanJoinTeam ||
-		State.InputPlayerIsSpawned != _InputPlayerIsSpawned ||
-		State.DisplayJoinTeam != _DisplayJoinTeam
+		State.InputPlayerIsSpawned != _InputPlayerIsSpawned
 	) {
 		State.CanJoinTeam = _CanJoinTeam;
 		State.InputPlayerIsSpawned = _InputPlayerIsSpawned;
-		State.DisplayJoinTeam = _DisplayJoinTeam;
 		JoinTeamUpdate = True;
 	}
-	
+
 	State = SetVisibility(State, (State.TargetPlayerId != NullId && State.TargetPlayerClan > 0), _DisplayModule);
 	declare Boolean VisibilityUpdate = PrevIsDisplayed != State.IsDisplayed;
 
@@ -656,7 +650,6 @@ declare netread Integer Net_Royal_SegmentProgression_UnlockedSegment for Teams[0
 declare netread Integer Net_Royal_SegmentProgression_NextUnlockTime for Teams[0];
 declare netread Boolean Net_Royal_SegmentProgression_CanJoinTeam for UI;
 declare netread Boolean Net_Royal_SegmentProgression_AlwaysDisplayUnlockTimer for Teams[0];
-declare netread Boolean Net_Royal_SegmentProgression_DisplayJoinTeam for Teams[0] = C_Default_DisplayJoinTeam;
 
 declare K_State State;
 declare Integer NextUpdateTime;
@@ -684,7 +677,6 @@ State = K_State {
 	NextUnlockTime = -1,
 	DisplayUnlockTimer = False,
 	AlwaysDisplayUnlockTimer = False,
-	DisplayJoinTeam = C_Default_DisplayJoinTeam,
 	CanJoinTeam = False,
 	InputPlayerIsSpawned = False,
 	ActivePadId = NullId,
@@ -711,7 +703,7 @@ NextUpdateTime = Now;
 InputPlayerUnspawnTime = -1;
 
 State = InitializeGauge(State);
-State = UpdateProgression(State, GUIPlayer, False, Net_Royal_SegmentProgression_TeamsProgressionUpdate, Net_Royal_SegmentProgression_TeamsProgression, Net_Royal_SegmentProgression_SegmentsNb, Net_Royal_SegmentProgression_UnlockedSegment, Net_Royal_SegmentProgression_NextUnlockTime, State.TargetPlayerSegment, Net_Royal_SegmentProgression_CanJoinTeam, PlayerIsSpawned(InputPlayer), Net_Royal_SegmentProgression_AlwaysDisplayUnlockTimer, Net_Royal_SegmentProgression_DisplayJoinTeam);
+State = UpdateProgression(State, GUIPlayer, False, Net_Royal_SegmentProgression_TeamsProgressionUpdate, Net_Royal_SegmentProgression_TeamsProgression, Net_Royal_SegmentProgression_SegmentsNb, Net_Royal_SegmentProgression_UnlockedSegment, Net_Royal_SegmentProgression_NextUnlockTime, State.TargetPlayerSegment, Net_Royal_SegmentProgression_CanJoinTeam, PlayerIsSpawned(InputPlayer), Net_Royal_SegmentProgression_AlwaysDisplayUnlockTimer);
 ***
 
 ***MainLoop***
@@ -721,12 +713,12 @@ if (PageIsVisible) {
 	if (Owner != Null) {
 		declare netread Boolean Net_Royal_SegmentProgression_IsVisible for Owner;
 		if (State.IsDisplayed_DisplayModule != Net_Royal_SegmentProgression_IsVisible) {
-			State = UpdateProgression(State, GUIPlayer, Net_Royal_SegmentProgression_IsVisible, Net_Royal_SegmentProgression_TeamsProgressionUpdate, Net_Royal_SegmentProgression_TeamsProgression, Net_Royal_SegmentProgression_SegmentsNb, Net_Royal_SegmentProgression_UnlockedSegment, Net_Royal_SegmentProgression_NextUnlockTime, State.TargetPlayerSegment, Net_Royal_SegmentProgression_CanJoinTeam, PlayerIsSpawned(InputPlayer), Net_Royal_SegmentProgression_AlwaysDisplayUnlockTimer, Net_Royal_SegmentProgression_DisplayJoinTeam);
+			State = UpdateProgression(State, GUIPlayer, Net_Royal_SegmentProgression_IsVisible, Net_Royal_SegmentProgression_TeamsProgressionUpdate, Net_Royal_SegmentProgression_TeamsProgression, Net_Royal_SegmentProgression_SegmentsNb, Net_Royal_SegmentProgression_UnlockedSegment, Net_Royal_SegmentProgression_NextUnlockTime, State.TargetPlayerSegment, Net_Royal_SegmentProgression_CanJoinTeam, PlayerIsSpawned(InputPlayer), Net_Royal_SegmentProgression_AlwaysDisplayUnlockTimer);
 		}
 	}
 
 	if (Owner == Null && State.IsDisplayed_DisplayModule) {
-		State = UpdateProgression(State, GUIPlayer, False, Net_Royal_SegmentProgression_TeamsProgressionUpdate, Net_Royal_SegmentProgression_TeamsProgression, Net_Royal_SegmentProgression_SegmentsNb, Net_Royal_SegmentProgression_UnlockedSegment, Net_Royal_SegmentProgression_NextUnlockTime, State.TargetPlayerSegment, Net_Royal_SegmentProgression_CanJoinTeam, PlayerIsSpawned(InputPlayer), Net_Royal_SegmentProgression_AlwaysDisplayUnlockTimer, Net_Royal_SegmentProgression_DisplayJoinTeam);
+		State = UpdateProgression(State, GUIPlayer, False, Net_Royal_SegmentProgression_TeamsProgressionUpdate, Net_Royal_SegmentProgression_TeamsProgression, Net_Royal_SegmentProgression_SegmentsNb, Net_Royal_SegmentProgression_UnlockedSegment, Net_Royal_SegmentProgression_NextUnlockTime, State.TargetPlayerSegment, Net_Royal_SegmentProgression_CanJoinTeam, PlayerIsSpawned(InputPlayer), Net_Royal_SegmentProgression_AlwaysDisplayUnlockTimer);
 	}
 
 	if (State.IsDisplayed_DisplayModule) {
@@ -744,7 +736,7 @@ if (PageIsVisible) {
 			if (GUIPlayer != Null) {
 				declare netread Integer Net_Royal_SegmentProgression_CurrentSegment for GUIPlayer;
 				if (State.TargetPlayerSegment != Net_Royal_SegmentProgression_CurrentSegment && !DelaySpecModeActivation(InputPlayerUnspawnTime)) {
-					State = UpdateProgression(State, GUIPlayer, State.IsDisplayed_DisplayModule, Net_Royal_SegmentProgression_TeamsProgressionUpdate, Net_Royal_SegmentProgression_TeamsProgression, Net_Royal_SegmentProgression_SegmentsNb, Net_Royal_SegmentProgression_UnlockedSegment, Net_Royal_SegmentProgression_NextUnlockTime, Net_Royal_SegmentProgression_CurrentSegment, Net_Royal_SegmentProgression_CanJoinTeam, PlayerIsSpawned(InputPlayer), Net_Royal_SegmentProgression_AlwaysDisplayUnlockTimer, Net_Royal_SegmentProgression_DisplayJoinTeam);
+					State = UpdateProgression(State, GUIPlayer, State.IsDisplayed_DisplayModule, Net_Royal_SegmentProgression_TeamsProgressionUpdate, Net_Royal_SegmentProgression_TeamsProgression, Net_Royal_SegmentProgression_SegmentsNb, Net_Royal_SegmentProgression_UnlockedSegment, Net_Royal_SegmentProgression_NextUnlockTime, Net_Royal_SegmentProgression_CurrentSegment, Net_Royal_SegmentProgression_CanJoinTeam, PlayerIsSpawned(InputPlayer), Net_Royal_SegmentProgression_AlwaysDisplayUnlockTimer);
 				}
 			}
 
@@ -757,12 +749,11 @@ if (PageIsVisible) {
 					State.CanJoinTeam != Net_Royal_SegmentProgression_CanJoinTeam ||
 					State.InputPlayerIsSpawned != PlayerIsSpawned(InputPlayer) ||
 					State.AlwaysDisplayUnlockTimer != Net_Royal_SegmentProgression_AlwaysDisplayUnlockTimer ||
-					State.DisplayJoinTeam != Net_Royal_SegmentProgression_DisplayJoinTeam ||
 					(GUIPlayer != Null && (State.TargetPlayerId != GUIPlayer.Id || State.TargetPlayerClan != GUIPlayer.CurrentClan)) ||
 					(GUIPlayer == Null && (State.TargetPlayerId != NullId || State.TargetPlayerClan != -1))
 				) && !DelaySpecModeActivation(InputPlayerUnspawnTime)
 			) {
-				State = UpdateProgression(State, GUIPlayer, State.IsDisplayed_DisplayModule, Net_Royal_SegmentProgression_TeamsProgressionUpdate, Net_Royal_SegmentProgression_TeamsProgression, Net_Royal_SegmentProgression_SegmentsNb, Net_Royal_SegmentProgression_UnlockedSegment, Net_Royal_SegmentProgression_NextUnlockTime, State.TargetPlayerSegment, Net_Royal_SegmentProgression_CanJoinTeam, PlayerIsSpawned(InputPlayer), Net_Royal_SegmentProgression_AlwaysDisplayUnlockTimer, Net_Royal_SegmentProgression_DisplayJoinTeam);
+				State = UpdateProgression(State, GUIPlayer, State.IsDisplayed_DisplayModule, Net_Royal_SegmentProgression_TeamsProgressionUpdate, Net_Royal_SegmentProgression_TeamsProgression, Net_Royal_SegmentProgression_SegmentsNb, Net_Royal_SegmentProgression_UnlockedSegment, Net_Royal_SegmentProgression_NextUnlockTime, State.TargetPlayerSegment, Net_Royal_SegmentProgression_CanJoinTeam, PlayerIsSpawned(InputPlayer), Net_Royal_SegmentProgression_AlwaysDisplayUnlockTimer);
 			}
 		}
 
