@@ -4,11 +4,11 @@
 #Extends "Modes/Nadeo/Trackmania/Base/TrackmaniaBase.Script.txt"
 
 #Const CompatibleMapTypes	"TrackMania\\TM_Royal,TM_Royal"
-#Const Version						"1.2.0+2023-11-02"
+#Const Version						"1.2.1+2024-02-20"
 #Const ScriptName					"Modes/TrackMania/TM_Royal_Online.Script.txt"
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Libraries
+// MARK: Libraries
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #Include "TextLib" as TL
 #Include "MathLib" as ML
@@ -36,7 +36,7 @@
 #Include "Libs/Nadeo/Trackmania/Structures/PrestigeStruct.Script.txt" as PrestigeStruct
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Settings
+// MARK: Settings
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #Setting S_TimeLimit 150 as _("Time limit") //< Time limit before going to the next map
 #Setting S_SegmentUnlockInterval 30 as _("Time interval between segment unlock")
@@ -61,7 +61,7 @@
 #Setting S_AlwaysDisplayUnlockTimer False as "<hidden>" //< Always display when the next segment will be unlocked or only if the team reached it already
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Structures
+// MARK: Structures
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 // The `CustomData` variable on the nadeo services is limited to 50 characters.
 // So we use shorter names for the json fields.
@@ -74,7 +74,7 @@
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Constants
+// MARK: Constants
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #Const C_ModeName "Royal"
 //L16N [Royal] Description of the mode rules
@@ -114,7 +114,7 @@
 #Const C_EnableGhostDriver True
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Extends
+// MARK: Extends
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 ***Match_LogVersions***
 ***
@@ -574,7 +574,7 @@ if (WaitingScreenDuration >= 0) {
 		}
 	}
 
-	// Warn players that some of their teammates cannot chat because they have only a standard access
+	// Warn players that some of their teammates cannot chat because they have only a starter access
 	if (Match_StartNewMatch) {
 		UIModules_CanChat::SendGroupedCannotChatMessages();
 	}
@@ -1091,7 +1091,7 @@ Log::Log("""[Royal][Bots] Ghosts array before unloading map > Ghosts : {{{Ghosts
 ***
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Functions
+// MARK: Functions
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /// Check if a player can spawn
